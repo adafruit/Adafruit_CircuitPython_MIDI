@@ -10,6 +10,7 @@ class MIDI:
         self.in_channel = in_channel
         self.out_channel = out_channel
         self._debug = True
+        self._outbuf = bytearray(4)
 
     @property
     def in_channel(self):
@@ -32,15 +33,25 @@ class MIDI:
         self._out_channel = channel
 
     def note_on(self, note, vel, channel=None):
-        if not (0 <= note <= 0x7F):
-            raise RuntimeError("Note value invalid")
-        if not (0 <= vel <= 0x7F):
-            raise RuntimeError("Velocity invalid")
+        self._generic_3(self.NOTE_ON, note, vel, channel)
+
+    def note_off(self, note, vel, channel=None):
+        self._generic_3(self.NOTE_OFF, note, vel, channel)
+
+
+    def _generic_3(self, cmd, arg1, arg2, channel=None):
+        if not (0 <= arg1 <= 0x7F):
+            raise RuntimeError("Argument 1 value %d invalid" % arg1)
+        if not (0 <= arg2 <= 0x7F):
+            raise RuntimeError("Argument 2 value %d invalid" % arg2)
         if not channel:
             channel = self._out_channel
-        self._send([self.NOTE_ON | channel, note, vel])
+        self._outbuf[0] = (cmd & 0xF0) | channel
+        self._outbuf[1] = arg1
+        self._outbuf[2] = arg2
+        self._send(self._outbuf, 3)
 
-    def _send(self, packet):
+    def _send(self, packet, num):
         if self._debug:
-            print("Sending: ", [hex(i) for i in packet])
-        print(self._midi_out(packet))
+            print("Sending: ", [hex(i) for i in packet[:num]])
+        print(self._midi_out.write(packet, num))
