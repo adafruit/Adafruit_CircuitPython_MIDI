@@ -1,3 +1,5 @@
+import usb_midi
+
 class MIDI:
     """A helper for encoding/decoding MIDI packets over a midi or uart connection"""
 
@@ -6,7 +8,8 @@ class MIDI:
     PITCH_BEND = 0xE0
     CONTROL_CHANGE = 0xB0
 
-    def __init__(self, midi_in, midi_out, *, in_channel=None, out_channel=0):
+
+    def __init__(self, midi_in=usb_midi.ports[0], midi_out=usb_midi.ports[1], *, in_channel=None, out_channel=0):
         self._midi_in = midi_in
         self._midi_out = midi_out
         self.in_channel = in_channel
