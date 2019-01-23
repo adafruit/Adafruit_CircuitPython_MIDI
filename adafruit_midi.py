@@ -3,6 +3,8 @@ class MIDI:
 
     NOTE_ON = 0x90
     NOTE_OFF = 0x80
+    PITCH_BEND = 0xE0
+    CONTROL_CHANGE = 0xB0
 
     def __init__(self, midi_in, midi_out, *, in_channel=None, out_channel=0):
         self._midi_in = midi_in
@@ -38,6 +40,11 @@ class MIDI:
     def note_off(self, note, vel, channel=None):
         self._generic_3(self.NOTE_OFF, note, vel, channel)
 
+    def pitch_bend(self, value, channel=None):
+        self._generic_3(self.PITCH_BEND, value & 0x7F, value >> 7, channel)
+
+    def control_change(self, control, value, channel=None):
+        self._generic_3(self.CONTROL_CHANGE, control, value, channel)
 
     def _generic_3(self, cmd, arg1, arg2, channel=None):
         if not (0 <= arg1 <= 0x7F):
