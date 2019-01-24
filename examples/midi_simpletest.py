@@ -1,9 +1,8 @@
 import time
 import random
-from Adafruit_CircuitPython_MIDI.adafruit_midi import MIDI
-import usb_midi
+import adafruit_midi
 
-midi = MIDI(out_channel=0)
+midi = adafruit_midi.MIDI(out_channel=0)
 
 print("Midi test")
 
