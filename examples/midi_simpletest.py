@@ -13,5 +13,5 @@ while True:
     midi.note_on(44, 120)
     midi.note_off(44, 120)
     midi.control_change(3, 44)
-    midi.pitch_bend(random.randint(0,16383))
+    midi.pitch_bend(random.randint(0, 16383))
     time.sleep(1)
