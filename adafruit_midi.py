@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 #
-# Copyright (c) 2019 Limor Fried for Adafruit Industries
+# Copyright (c) 2019 Limor Fried for Adafruit Industries, Kevin J. Walters
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -26,7 +26,7 @@
 A CircuitPython helper for encoding/decoding MIDI packets over a MIDI or UART connection.
 
 
-* Author(s): Limor Fried
+* Author(s): Limor Fried, Kevin J. Walters
 
 Implementation Notes
 --------------------
@@ -47,6 +47,145 @@ import usb_midi
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
+
+# TODO TBD: can relocate this class later to a separate file if recommended
+class MIDIMessage:
+    """
+    A MIDI message:
+      - Status - extracted from Status byte with channel replaced by 0s
+                (high bit always set)
+      - Channel - extracted from Status where present (0-15)
+      - 0 or more Data Byte(s) - high bit always not set for data
+      - _LENGTH is the fixed message length including status or -1 for variable length
+      - _ENDSTATUS is the EOM status byte if relevant
+    This is an abstract class.
+    """
+    _STATUS = None
+    _STATUSMASK = None
+    _LENGTH = None
+    _ENDSTATUS = None
+    
+    ### Each element is ((status, mask), class)
+    _statusandmask_to_class = []
+    
+    @classmethod
+    def register_message_type(cls):
+        """Register a new message by its status value and mask
+        """
+
+        ### TODO Why is not cls ? is this to avoid it ending up in subclass?
+        MIDIMessage._statusandmask_to_class.append(((cls._STATUS, cls._STATUSMASK), cls))
+
+    @classmethod
+    def from_bytes(cls, midibytes):
+        """Create an appropriate object of the correct class for the first message found in
+           some MIDI bytes.
+           Returns (messageobject, start, endplusone) or None for no message or partial message.
+        """
+
+        msg = None
+        startidx = 0
+        endidx = len(midibytes) - 1
+
+        # Look for a status byte
+        # Second rule of the MIDI club is status bytes have MSB set
+        while startidx <= endidx and not (midibytes[startidx] & 0x80):
+            startidx += 1
+        
+        # Either no message or a partial one
+        if startidx > endidx:
+            return None
+
+        status = midibytes[startidx]
+        msgendidx = -1
+        # Rummage through our list looking for variable bitness status match
+        for (sm, msgclass) in MIDIMessage._statusandmask_to_class:
+            maskedstatus = status & sm[1]
+            if sm[0] == maskedstatus:
+                # Check there's enough left to parse a complete message
+                if len(midibytes) - startidx >= msgclass._LENGTH:
+                    if msgclass._LENGTH < 0:
+                        # TODO code this properly
+                        msgendidxplusone = endidx + 1   # TODO NOT CORRECT
+                    else:
+                        msgendidxplusone = startidx + msgclass._LENGTH
+                    msg = msgclass.from_bytes(midibytes[startidx+1:msgendidxplusone])
+                break
+        
+        ### TODO correct to handle a buffer with start of big SysEx
+        ### TODO correct to handle a buffer in middle of big SysEx
+        ### TODO correct to handle a buffer with end portion of big SysEx
+        if msg is not None:
+            return (msg, startidx, msgendidxplusone)
+        else:
+            return None
+
+
+# TODO - do i omit Change word from these
+class NoteOn(MIDIMessage):
+    _STATUS = 0x80
+    _STATUSMASK = 0xf0
+    _LENGTH = 3
+    
+    def __init__(self, note, vel):
+        self.note = note
+        self.vel = vel
+    
+    @classmethod
+    def from_bytes(cls, databytes):
+        return cls(databytes[0], databytes[1])  
+   
+NoteOn.register_message_type()
+
+
+class NoteOff(MIDIMessage):
+    _STATUS = 0x90
+    _STATUSMASK = 0xf0
+    _LENGTH = 3
+    
+    def __init__(self, note, vel):
+        self.note = note
+        self.vel = vel
+    
+    @classmethod
+    def from_bytes(cls, databytes):
+        return cls(databytes[0], databytes[1])  
+        
+NoteOff.register_message_type()
+
+
+class ControlChange(MIDIMessage):
+    _STATUS = 0xb0
+    _STATUSMASK = 0xf0
+    _LENGTH = 3
+    
+    def __init__(self, control, value):
+        self.control = control
+        self.value = value
+    
+    @classmethod
+    def from_bytes(cls, databytes):
+        return cls(databytes[0], databytes[1])  
+        
+ControlChange.register_message_type()
+
+
+class PitchBendChange(MIDIMessage):
+    _STATUS = 0xe0
+    _STATUSMASK = 0xf0
+    _LENGTH = 3
+    
+    def __init__(self, value):
+        self.value = value
+    
+    @classmethod
+    def from_bytes(cls, databytes):
+        return cls(databytes[1] << 7 | databytes[0])  
+
+PitchBendChange.register_message_type()
+
+
+
 class MIDI:
     """MIDI helper class."""
 
@@ -56,12 +195,15 @@ class MIDI:
     CONTROL_CHANGE = 0xB0
 
     def __init__(self, midi_in=usb_midi.ports[0], midi_out=usb_midi.ports[1], *, in_channel=None,
-                 out_channel=0, debug=False):
+                 out_channel=0, debug=False, in_buf_size=30):
         self._midi_in = midi_in
         self._midi_out = midi_out
         self._in_channel = in_channel
         self._out_channel = out_channel
         self._debug = debug
+        # This input buffer holds what has been read from midi_in
+        self._inbuf = bytearray(0)
+        self._inbuf_size = in_buf_size
         self._outbuf = bytearray(4)
 
     @property
@@ -87,6 +229,26 @@ class MIDI:
         if not 0 <= channel <= 15:
             raise RuntimeError("Invalid output channel")
         self._out_channel = channel
+
+    ### TODO - consider naming here and channel selection and omni mode
+    def read_in_port(self):
+        ### could check _midi_in is an object OR correct object OR correct interface here?
+        # If the buffer here is not full then read as much as we can fit from
+        # the input port
+        if len(self._inbuf) < self._inbuf_size:
+            self._inbuf.extend(self._midi_in.read(self._inbuf_size - len(self._inbuf)))
+ 
+        msgse = MIDIMessage.from_bytes(self._inbuf)
+        if msgse is not None:
+            (msg, start, endplusone) = msgse
+            # This is not particularly efficient as it's copying most of bytearray
+            # and deleting old one
+            self._inbuf = self._inbuf[endplusone:]
+            # msg could still be None at this point, e.g. in middle of monster SysEx
+            return msg
+        else:
+            return None            
+
 
     def note_on(self, note, vel, channel=None):
         """Sends a MIDI Note On message.
@@ -130,6 +292,7 @@ class MIDI:
             raise RuntimeError("Argument 1 value %d invalid" % arg1)
         if not 0 <= arg2 <= 0x7F:
             raise RuntimeError("Argument 2 value %d invalid" % arg2)
+        ### TODO - change this to use is operator and range check or mask it
         if not channel:
             channel = self._out_channel
         self._outbuf[0] = (cmd & 0xF0) | channel
