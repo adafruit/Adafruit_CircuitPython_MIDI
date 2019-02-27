@@ -98,10 +98,12 @@ class MIDIMessage:
 
         status = midibytes[startidx]
         msgendidx = -1
+        smfound = False
         # Rummage through our list looking for variable bitness status match
         for (sm, msgclass) in MIDIMessage._statusandmask_to_class:
             maskedstatus = status & sm[1]
             if sm[0] == maskedstatus:
+                smfound = True
                 # Check there's enough left to parse a complete message
                 if len(midibytes) - startidx >= msgclass._LENGTH:
                     if msgclass._LENGTH < 0:
@@ -112,6 +114,12 @@ class MIDIMessage:
                     msg = msgclass.from_bytes(midibytes[startidx+1:msgendidxplusone])
                 break
         
+        if not smfound:
+            msg = MIDIUnknownEvent(status)
+            # length cannot be known
+            # next read will skip past leftover data bytes
+            msgendidxplusone = startidx + 1
+            
         ### TODO correct to handle a buffer with start of big SysEx
         ### TODO correct to handle a buffer in middle of big SysEx
         ### TODO correct to handle a buffer with end portion of big SysEx
@@ -185,6 +193,19 @@ class PitchBendChange(MIDIMessage):
 PitchBendChange.register_message_type()
 
 
+class MIDIUnknownEvent(MIDIMessage):
+    _LENGTH = -1
+    
+    def __init__(self, status):
+        self.status = status
+    
+    @classmethod
+    def from_bytes(cls, status):
+        return cls(status)  
+
+    def register_message_type(cls):
+        return ValueError("DO NOT REGISTER THIS MESSAGE")
+
 
 class MIDI:
     """MIDI helper class."""
@@ -238,6 +259,8 @@ class MIDI:
         if len(self._inbuf) < self._inbuf_size:
             self._inbuf.extend(self._midi_in.read(self._inbuf_size - len(self._inbuf)))
  
+        # TODO - VERY IMPORTANT - WORK OUT HOW TO HANDLE CHANNEL FILTERING
+        # AND THINK ABOUT OMNI MODE
         msgse = MIDIMessage.from_bytes(self._inbuf)
         if msgse is not None:
             (msg, start, endplusone) = msgse
@@ -247,7 +270,7 @@ class MIDI:
             # msg could still be None at this point, e.g. in middle of monster SysEx
             return msg
         else:
-            return None            
+            return None
 
 
     def note_on(self, note, vel, channel=None):
