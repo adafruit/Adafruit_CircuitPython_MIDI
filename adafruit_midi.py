@@ -131,7 +131,7 @@ class MIDIMessage:
 
 # TODO - do i omit Change word from these
 class NoteOn(MIDIMessage):
-    _STATUS = 0x80
+    _STATUS = 0x90
     _STATUSMASK = 0xf0
     _LENGTH = 3
     
@@ -147,7 +147,7 @@ NoteOn.register_message_type()
 
 
 class NoteOff(MIDIMessage):
-    _STATUS = 0x90
+    _STATUS = 0x80
     _STATUSMASK = 0xf0
     _LENGTH = 3
     
