@@ -119,7 +119,7 @@ class MIDI:
     def control_change(self, control, value, channel=None):
         """Sends a MIDI CC message.
 
-        :param int control: The controller number. Must be 0-15.
+        :param int control: The controller number. Must be 0-127.
         :param int value: The control value. Must be 0-127.
 
         """
