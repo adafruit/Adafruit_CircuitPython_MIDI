@@ -276,12 +276,14 @@ class MIDI:
     PITCH_BEND = 0xE0
     CONTROL_CHANGE = 0xB0
 
+    ALL_CHANNELS = -1
+    
     def __init__(self, midi_in=usb_midi.ports[0], midi_out=usb_midi.ports[1], *, in_channel=None,
                  out_channel=0, debug=False, in_buf_size=30):
         self._midi_in = midi_in
         self._midi_out = midi_out
-        self._in_channel = in_channel
-        self._out_channel = out_channel
+        self.in_channel = in_channel
+        self.out_channel = out_channel
         self._debug = debug
         # This input buffer holds what has been read from midi_in
         self._inbuf = bytearray(0)
@@ -296,9 +298,14 @@ class MIDI:
 
     @in_channel.setter
     def in_channel(self, channel):
-        if channel is not None and not 0 <= channel <= 15:
+        if channel is None or (isinstance(channel, int) and 0 <= channel <= 15):
+            self._in_channel = channel
+        elif isinstance(channel, str) and channel == "ALL":
+            self._in_channel = self.ALL_CHANNELS
+        elif isinstance(channel, tuple) and all(0 <= c <= 15 for c in channel):
+            self._in_channel = channel
+        else:
             raise RuntimeError("Invalid input channel")
-        self._in_channel = channel
 
     @property
     def out_channel(self):
