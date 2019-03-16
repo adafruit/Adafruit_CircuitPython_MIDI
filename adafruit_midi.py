@@ -145,8 +145,8 @@ class TimingClock(MIDIMessage):
         pass
     
     @classmethod
-    def from_bytes(cls):
-        return cls()  
+    def from_bytes(cls, databytes):
+        return cls()
 
 TimingClock.register_message_type()
 
