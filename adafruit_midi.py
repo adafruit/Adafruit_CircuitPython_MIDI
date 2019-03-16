@@ -65,16 +65,23 @@ class MIDIMessage:
     _LENGTH = None
     _ENDSTATUS = None
     
-    ### Each element is ((status, mask), class)
+    # Each element is ((status, mask), class)
+    # order is more specific masks first
     _statusandmask_to_class = []
-    
+
     @classmethod
     def register_message_type(cls):
-        """Register a new message by its status value and mask
+        """Register a new message by its status value and mask.
         """
+        ### These must be inserted with more specific masks first
+        insert_idx = len(MIDIMessage._statusandmask_to_class)
+        for idx, m_type in enumerate(MIDIMessage._statusandmask_to_class):
+            if cls._STATUSMASK > m_type[0][1]:
+                insert_idx = idx
+                break
 
-        ### TODO Why is not cls ? is this to avoid it ending up in subclass?
-        MIDIMessage._statusandmask_to_class.append(((cls._STATUS, cls._STATUSMASK), cls))
+        MIDIMessage._statusandmask_to_class.insert(insert_idx,
+                                                   ((cls._STATUS, cls._STATUSMASK), cls))
 
     @classmethod
     def from_bytes(cls, midibytes):
@@ -99,8 +106,8 @@ class MIDIMessage:
         status = midibytes[startidx]
         msgendidx = -1
         smfound = False
-        # Rummage through our list looking for variable bitness status match
-        for (sm, msgclass) in MIDIMessage._statusandmask_to_class:
+        # Rummage through our list looking for a status match
+        for sm, msgclass in MIDIMessage._statusandmask_to_class:
             maskedstatus = status & sm[1]
             if sm[0] == maskedstatus:
                 smfound = True
@@ -129,21 +136,19 @@ class MIDIMessage:
             return None
 
 
-# TODO - do i omit Change word from these
-class NoteOn(MIDIMessage):
-    _STATUS = 0x90
-    _STATUSMASK = 0xf0
-    _LENGTH = 3
+class TimingClock(MIDIMessage):
+    _STATUS = 0xf8
+    _STATUSMASK = 0xff
+    _LENGTH = 1
     
-    def __init__(self, note, vel):
-        self.note = note
-        self.vel = vel
+    def __init__(self):
+        pass
     
     @classmethod
-    def from_bytes(cls, databytes):
-        return cls(databytes[0], databytes[1])  
-   
-NoteOn.register_message_type()
+    def from_bytes(cls):
+        return cls()  
+
+TimingClock.register_message_type()
 
 
 class NoteOff(MIDIMessage):
@@ -162,6 +167,38 @@ class NoteOff(MIDIMessage):
 NoteOff.register_message_type()
 
 
+class NoteOn(MIDIMessage):
+    _STATUS = 0x90
+    _STATUSMASK = 0xf0
+    _LENGTH = 3
+    
+    def __init__(self, note, vel):
+        self.note = note
+        self.vel = vel
+    
+    @classmethod
+    def from_bytes(cls, databytes):
+        return cls(databytes[0], databytes[1])  
+   
+NoteOn.register_message_type()
+
+
+class PolyphonicKeyPressure(MIDIMessage):
+    _STATUS = 0xa0
+    _STATUSMASK = 0xf0
+    _LENGTH = 3
+    
+    def __init__(self, note, pressure):
+        self.note = note
+        self.pressure = pressure
+    
+    @classmethod
+    def from_bytes(cls, databytes):
+        return cls(databytes[0], databytes[1])  
+        
+PolyphonicKeyPressure.register_message_type()
+
+
 class ControlChange(MIDIMessage):
     _STATUS = 0xb0
     _STATUSMASK = 0xf0
@@ -176,6 +213,36 @@ class ControlChange(MIDIMessage):
         return cls(databytes[0], databytes[1])  
         
 ControlChange.register_message_type()
+
+
+class ProgramChange(MIDIMessage):
+    _STATUS = 0xc0
+    _STATUSMASK = 0xf0
+    _LENGTH = 2
+    
+    def __init__(self, patch):
+        self.patch = patch
+    
+    @classmethod
+    def from_bytes(cls, databytes):
+        return cls(databytes[0])  
+
+ProgramChange.register_message_type()
+
+
+class ChannelPressure(MIDIMessage):
+    _STATUS = 0xd0
+    _STATUSMASK = 0xf0
+    _LENGTH = 2
+    
+    def __init__(self, pressure):
+        self.pressure = pressure
+    
+    @classmethod
+    def from_bytes(cls, databytes):
+        return cls(databytes[0])  
+
+ChannelPressure.register_message_type()
 
 
 class PitchBendChange(MIDIMessage):
@@ -193,18 +260,12 @@ class PitchBendChange(MIDIMessage):
 PitchBendChange.register_message_type()
 
 
+# DO NOT try to register this message
 class MIDIUnknownEvent(MIDIMessage):
     _LENGTH = -1
     
     def __init__(self, status):
         self.status = status
-    
-    @classmethod
-    def from_bytes(cls, status):
-        return cls(status)  
-
-    def register_message_type(cls):
-        return ValueError("DO NOT REGISTER THIS MESSAGE")
 
 
 class MIDI:
@@ -261,6 +322,9 @@ class MIDI:
  
         # TODO - VERY IMPORTANT - WORK OUT HOW TO HANDLE CHANNEL FILTERING
         # AND THINK ABOUT OMNI MODE
+        
+        ### TODO need to ensure code skips past unknown data/messages in buffer
+        ### aftertouch from Axiom 25 causes 6 in the buffer!!
         msgse = MIDIMessage.from_bytes(self._inbuf)
         if msgse is not None:
             (msg, start, endplusone) = msgse
