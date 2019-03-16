@@ -84,7 +84,7 @@ class MIDIMessage:
                                                    ((cls._STATUS, cls._STATUSMASK), cls))
 
     @classmethod
-    def from_bytes(cls, midibytes):
+    def from_message_bytes(cls, midibytes):
         """Create an appropriate object of the correct class for the first message found in
            some MIDI bytes.
            Returns (messageobject, start, endplusone) or None for no message or partial message.
@@ -135,18 +135,36 @@ class MIDIMessage:
         else:
             return None
 
+            
+    @classmethod
+    def from_bytes(cls, databytes):
+        """A default method for constructing messages that have no data.
+           Returns the new object."""
+        return cls()
+            
 
+class Start(MIDIMessage):
+    _STATUS = 0xfa
+    _STATUSMASK = 0xff
+    _LENGTH = 1
+
+Start.register_message_type()
+
+
+class Stop(MIDIMessage):
+    _STATUS = 0xfc
+    _STATUSMASK = 0xff
+    _LENGTH = 1
+
+Stop.register_message_type()
+
+
+# Would be good to have this registered first as it occurs
+# frequently when in-use
 class TimingClock(MIDIMessage):
     _STATUS = 0xf8
     _STATUSMASK = 0xff
     _LENGTH = 1
-    
-    def __init__(self):
-        pass
-    
-    @classmethod
-    def from_bytes(cls, databytes):
-        return cls()
 
 TimingClock.register_message_type()
 
@@ -332,7 +350,7 @@ class MIDI:
         
         ### TODO need to ensure code skips past unknown data/messages in buffer
         ### aftertouch from Axiom 25 causes 6 in the buffer!!
-        msgse = MIDIMessage.from_bytes(self._inbuf)
+        msgse = MIDIMessage.from_message_bytes(self._inbuf)
         if msgse is not None:
             (msg, start, endplusone) = msgse
             # This is not particularly efficient as it's copying most of bytearray
