@@ -268,8 +268,8 @@ class PitchBendChange(MIDIMessage):
     _STATUSMASK = 0xf0
     _LENGTH = 3
     
-    def __init__(self, value):
-        self.value = value
+    def __init__(self, pitch_bend):
+        self.pitch_bend = pitch_bend
     
     @classmethod
     def from_bytes(cls, databytes):
