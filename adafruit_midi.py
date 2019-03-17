@@ -233,9 +233,9 @@ class NoteOff(MIDIMessage):
     _LENGTH = 3
     _CHANNELMASK = 0x0f
     
-    def __init__(self, note, vel):
+    def __init__(self, note, velocity):
         self.note = note
-        self.vel = vel
+        self.vel = velocity
     
     @classmethod
     def from_bytes(cls, databytes):
@@ -250,9 +250,9 @@ class NoteOn(MIDIMessage):
     _LENGTH = 3
     _CHANNELMASK = 0x0f
     
-    def __init__(self, note, vel):
+    def __init__(self, note, velocity):
         self.note = note
-        self.vel = vel
+        self.velocity = velocity
     
     @classmethod
     def from_bytes(cls, databytes):
