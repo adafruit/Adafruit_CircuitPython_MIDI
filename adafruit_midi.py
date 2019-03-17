@@ -104,14 +104,15 @@ class MIDIMessage:
         """Create an appropriate object of the correct class for the
         first message found in some MIDI bytes.
 
-        Returns (messageobject, start, endplusone, channel)
+        Returns (messageobject, start, endplusone, skipped, channel)
         or for no messages, partial messages or messages for other channels
-        (None, start, endplusone, None).
+        (None, start, endplusone, skipped, None).
         """
 
         msg = None
         startidx = 0
         endidx = len(midibytes) - 1
+        skipped = 0
         
         msgstartidx = startidx
         while True:
@@ -119,10 +120,14 @@ class MIDIMessage:
             # Second rule of the MIDI club is status bytes have MSB set
             while msgstartidx <= endidx and not (midibytes[msgstartidx] & 0x80):
                 msgstartidx += 1
+                skipped += 1
+                print("Skipping past:", hex(midibytes[msgstartidx]))  ### TODO REMOVE THIS
 
             # Either no message or a partial one
             if msgstartidx > endidx:
-                return (None, startidx, endidx + 1, None)
+                ### TODO review exactly when buffer should be discarded
+                ### must not discard the first half of a message
+                return (None, startidx, endidx + 1, skipped, None)
 
             status = midibytes[msgstartidx]
             msgendidxplusone = 0
@@ -159,13 +164,15 @@ class MIDIMessage:
             else:
                 msgstartidx = msgendidxplusone
                    
+        ### TODO THIS IS NOW BUGGY DUE TO 
+                   
         ### TODO correct to handle a buffer with start of big SysEx
         ### TODO correct to handle a buffer in middle of big SysEx
         ### TODO correct to handle a buffer with end portion of big SysEx
         if msg is not None:
-            return (msg, startidx, msgendidxplusone, channel)
+            return (msg, startidx, msgendidxplusone, skipped, channel)
         else:
-            return (None, startidx, msgendidxplusone, None)
+            return (None, startidx, msgendidxplusone, skipped, None)
 
     @classmethod
     def from_bytes(cls, databytes):
@@ -365,6 +372,7 @@ class MIDI:
         self._inbuf = bytearray(0)
         self._inbuf_size = in_buf_size
         self._outbuf = bytearray(4)
+        self._skipped_bytes = 0
 
     @property
     def in_channel(self):
@@ -406,16 +414,23 @@ class MIDI:
         # If the buffer here is not full then read as much as we can fit from
         # the input port
         if len(self._inbuf) < self._inbuf_size:
-            self._inbuf.extend(self._midi_in.read(self._inbuf_size - len(self._inbuf)))
+            bytes_in = self._midi_in.read(self._inbuf_size - len(self._inbuf))
+            if len(bytes_in) > 0:
+                if self._debug:
+                    print("Receiving: ", [hex(i) for i in bytes_in])
+                self._inbuf.extend(bytes_in)
+                del bytes_in
       
         ### TODO need to ensure code skips past unknown data/messages in buffer
         ### aftertouch from Axiom 25 causes 6 in the buffer!!
-        (msg, start, endplusone, channel) = MIDIMessage.from_message_bytes(self._inbuf, self._in_channel)
+        (msg, start, endplusone, skipped, channel) = MIDIMessage.from_message_bytes(self._inbuf, self._in_channel)
         if endplusone != 0:
             # This is not particularly efficient as it's copying most of bytearray
             # and deleting old one
             self._inbuf = self._inbuf[endplusone:]
 
+        self._skipped_bytes += skipped
+            
         # msg could still be None at this point, e.g. in middle of monster SysEx
         return (msg, channel)
 
