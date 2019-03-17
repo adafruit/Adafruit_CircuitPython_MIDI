@@ -48,7 +48,20 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 
+def channel_filter(channel, channel_spec):
+    if isinstance(channel_spec, int):
+        if channel_spec == MIDI.ALL_CHANNELS:
+            return True
+        else:
+            return channel == channel_spec
+    elif isinstance(channel_spec, tuple):
+        return channel in channel_spec
+    else:
+        raise ValueError("Incorrect type for channel_spec")
+
+        
 # TODO TBD: can relocate this class later to a separate file if recommended
+#           need to work out what to do with channel_filter() and its use of MIDI.ALL_CHANNELS
 class MIDIMessage:
     """
     A MIDI message:
@@ -63,6 +76,7 @@ class MIDIMessage:
     _STATUS = None
     _STATUSMASK = None
     _LENGTH = None
+    _CHANNELMASK = None
     _ENDSTATUS = None
     
     # Each element is ((status, mask), class)
@@ -82,66 +96,103 @@ class MIDIMessage:
 
         MIDIMessage._statusandmask_to_class.insert(insert_idx,
                                                    ((cls._STATUS, cls._STATUSMASK), cls))
-
+                        
+    # TODO - this needs a lot of test cases to prove it actually works
+    # TODO - finish SysEx implementation and find something that sends one
     @classmethod
-    def from_message_bytes(cls, midibytes):
-        """Create an appropriate object of the correct class for the first message found in
-           some MIDI bytes.
-           Returns (messageobject, start, endplusone) or None for no message or partial message.
+    def from_message_bytes(cls, midibytes, channel_in):
+        """Create an appropriate object of the correct class for the
+        first message found in some MIDI bytes.
+
+        Returns (messageobject, start, endplusone, channel)
+        or for no messages, partial messages or messages for other channels
+        (None, start, endplusone, None).
         """
 
         msg = None
         startidx = 0
         endidx = len(midibytes) - 1
-
-        # Look for a status byte
-        # Second rule of the MIDI club is status bytes have MSB set
-        while startidx <= endidx and not (midibytes[startidx] & 0x80):
-            startidx += 1
         
-        # Either no message or a partial one
-        if startidx > endidx:
-            return None
+        msgstartidx = startidx
+        while True:
+            # Look for a status byte
+            # Second rule of the MIDI club is status bytes have MSB set
+            while msgstartidx <= endidx and not (midibytes[msgstartidx] & 0x80):
+                msgstartidx += 1
 
-        status = midibytes[startidx]
-        msgendidx = -1
-        smfound = False
-        # Rummage through our list looking for a status match
-        for sm, msgclass in MIDIMessage._statusandmask_to_class:
-            maskedstatus = status & sm[1]
-            if sm[0] == maskedstatus:
-                smfound = True
-                # Check there's enough left to parse a complete message
-                if len(midibytes) - startidx >= msgclass._LENGTH:
-                    if msgclass._LENGTH < 0:
-                        # TODO code this properly
-                        msgendidxplusone = endidx + 1   # TODO NOT CORRECT
-                    else:
-                        msgendidxplusone = startidx + msgclass._LENGTH
-                    msg = msgclass.from_bytes(midibytes[startidx+1:msgendidxplusone])
+            # Either no message or a partial one
+            if msgstartidx > endidx:
+                return (None, startidx, endidx + 1, None)
+
+            status = midibytes[msgstartidx]
+            msgendidxplusone = 0
+            smfound = False
+            channel_match = True
+            channel = None
+            # Rummage through our list looking for a status match
+            for sm, msgclass in MIDIMessage._statusandmask_to_class:
+                masked_status = status & sm[1]
+                if sm[0] == masked_status:
+                    smfound = True
+                    # Check there's enough left to parse a complete message
+                    if len(midibytes) - msgstartidx >= msgclass._LENGTH:
+                        if msgclass._CHANNELMASK is not None:
+                            channel = status & msgclass._CHANNELMASK
+                            channel_match = channel_filter(channel, channel_in)
+                        if msgclass._LENGTH < 0:
+                            # TODO code this properly - THIS IS VARIABLE LENGTH MESSAGE
+                            msgendidxplusone = endidx + 1   # TODO NOT CORRECT
+                        else:
+                            msgendidxplusone = msgstartidx + msgclass._LENGTH
+                    
+                        if channel_match:
+                            msg = msgclass.from_bytes(midibytes[msgstartidx+1:msgendidxplusone])
+                    break # for
+            if smfound and channel_match:
+                break # while
+            elif not smfound:
+                msg = MIDIUnknownEvent(status)
+                # length cannot be known
+                # next read will skip past leftover data bytes
+                msgendidxplusone = msgstartidx + 1
                 break
-        
-        if not smfound:
-            msg = MIDIUnknownEvent(status)
-            # length cannot be known
-            # next read will skip past leftover data bytes
-            msgendidxplusone = startidx + 1
-            
+            else:
+                msgstartidx = msgendidxplusone
+                   
         ### TODO correct to handle a buffer with start of big SysEx
         ### TODO correct to handle a buffer in middle of big SysEx
         ### TODO correct to handle a buffer with end portion of big SysEx
         if msg is not None:
-            return (msg, startidx, msgendidxplusone)
+            return (msg, startidx, msgendidxplusone, channel)
         else:
-            return None
+            return (None, startidx, msgendidxplusone, None)
 
-            
     @classmethod
     def from_bytes(cls, databytes):
         """A default method for constructing messages that have no data.
            Returns the new object."""
         return cls()
-            
+
+
+class SystemExclusive(MIDIMessage):
+    _STATUS = 0xf0
+    _STATUSMASK = 0xff
+    _LENGTH = -1
+    _ENDSTATUS = 0xf7
+
+    def __init__(self, manufacturer_id, data):
+        self.manufacturer_id = manufacturer_id
+        self.data = data
+
+    @classmethod
+    def from_bytes(cls, databytes):
+        if databytes[0] != 0:
+            return cls(databytes[0:1], databytes[1:])
+        else:
+            return cls(databytes[0:3], databytes[3:])
+    
+SystemExclusive.register_message_type()
+             
 
 class Start(MIDIMessage):
     _STATUS = 0xfa
@@ -173,6 +224,7 @@ class NoteOff(MIDIMessage):
     _STATUS = 0x80
     _STATUSMASK = 0xf0
     _LENGTH = 3
+    _CHANNELMASK = 0x0f
     
     def __init__(self, note, vel):
         self.note = note
@@ -189,6 +241,7 @@ class NoteOn(MIDIMessage):
     _STATUS = 0x90
     _STATUSMASK = 0xf0
     _LENGTH = 3
+    _CHANNELMASK = 0x0f
     
     def __init__(self, note, vel):
         self.note = note
@@ -205,6 +258,7 @@ class PolyphonicKeyPressure(MIDIMessage):
     _STATUS = 0xa0
     _STATUSMASK = 0xf0
     _LENGTH = 3
+    _CHANNELMASK = 0x0f
     
     def __init__(self, note, pressure):
         self.note = note
@@ -221,6 +275,7 @@ class ControlChange(MIDIMessage):
     _STATUS = 0xb0
     _STATUSMASK = 0xf0
     _LENGTH = 3
+    _CHANNELMASK = 0x0f
     
     def __init__(self, control, value):
         self.control = control
@@ -237,6 +292,7 @@ class ProgramChange(MIDIMessage):
     _STATUS = 0xc0
     _STATUSMASK = 0xf0
     _LENGTH = 2
+    _CHANNELMASK = 0x0f
     
     def __init__(self, patch):
         self.patch = patch
@@ -252,6 +308,7 @@ class ChannelPressure(MIDIMessage):
     _STATUS = 0xd0
     _STATUSMASK = 0xf0
     _LENGTH = 2
+    _CHANNELMASK = 0x0f
     
     def __init__(self, pressure):
         self.pressure = pressure
@@ -267,6 +324,7 @@ class PitchBendChange(MIDIMessage):
     _STATUS = 0xe0
     _STATUSMASK = 0xf0
     _LENGTH = 3
+    _CHANNELMASK = 0x0f
     
     def __init__(self, pitch_bend):
         self.pitch_bend = pitch_bend
@@ -339,28 +397,27 @@ class MIDI:
 
     ### TODO - consider naming here and channel selection and omni mode
     def read_in_port(self):
+        """Read messages from MIDI port, store them in internal read buffer, then parse that data
+        and return the first MIDI message (event).
+        
+        Returns (MIDIMessage object, channel) or (None, None) for nothing.
+        """
         ### could check _midi_in is an object OR correct object OR correct interface here?
         # If the buffer here is not full then read as much as we can fit from
         # the input port
         if len(self._inbuf) < self._inbuf_size:
             self._inbuf.extend(self._midi_in.read(self._inbuf_size - len(self._inbuf)))
- 
-        # TODO - VERY IMPORTANT - WORK OUT HOW TO HANDLE CHANNEL FILTERING
-        # AND THINK ABOUT OMNI MODE
-        
+      
         ### TODO need to ensure code skips past unknown data/messages in buffer
         ### aftertouch from Axiom 25 causes 6 in the buffer!!
-        msgse = MIDIMessage.from_message_bytes(self._inbuf)
-        if msgse is not None:
-            (msg, start, endplusone) = msgse
+        (msg, start, endplusone, channel) = MIDIMessage.from_message_bytes(self._inbuf, self._in_channel)
+        if endplusone != 0:
             # This is not particularly efficient as it's copying most of bytearray
             # and deleting old one
             self._inbuf = self._inbuf[endplusone:]
-            # msg could still be None at this point, e.g. in middle of monster SysEx
-            return msg
-        else:
-            return None
 
+        # msg could still be None at this point, e.g. in middle of monster SysEx
+        return (msg, channel)
 
     def note_on(self, note, vel, channel=None):
         """Sends a MIDI Note On message.
