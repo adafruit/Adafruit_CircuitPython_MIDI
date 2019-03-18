@@ -121,7 +121,6 @@ class MIDIMessage:
             while msgstartidx <= endidx and not (midibytes[msgstartidx] & 0x80):
                 msgstartidx += 1
                 skipped += 1
-                print("Skipping past:", hex(midibytes[msgstartidx]))  ### TODO REMOVE THIS
 
             # Either no message or a partial one
             if msgstartidx > endidx:
@@ -350,7 +349,9 @@ class MIDIUnknownEvent(MIDIMessage):
     def __init__(self, status):
         self.status = status
 
-
+# TODO - implement running status
+# some good tips at end of http://midi.teragonaudio.com/tech/midispec/run.htm
+# only applies to voice category
 class MIDI:
     """MIDI helper class."""
 
@@ -369,8 +370,8 @@ class MIDI:
         self.out_channel = out_channel
         self._debug = debug
         # This input buffer holds what has been read from midi_in
-        self._inbuf = bytearray(0)
-        self._inbuf_size = in_buf_size
+        self._in_buf = bytearray(0)
+        self._in_buf_size = in_buf_size
         self._outbuf = bytearray(4)
         self._skipped_bytes = 0
 
@@ -413,21 +414,21 @@ class MIDI:
         ### could check _midi_in is an object OR correct object OR correct interface here?
         # If the buffer here is not full then read as much as we can fit from
         # the input port
-        if len(self._inbuf) < self._inbuf_size:
-            bytes_in = self._midi_in.read(self._inbuf_size - len(self._inbuf))
+        if len(self._in_buf) < self._in_buf_size:
+            bytes_in = self._midi_in.read(self._in_buf_size - len(self._in_buf))
             if len(bytes_in) > 0:
                 if self._debug:
                     print("Receiving: ", [hex(i) for i in bytes_in])
-                self._inbuf.extend(bytes_in)
+                self._in_buf.extend(bytes_in)
                 del bytes_in
       
         ### TODO need to ensure code skips past unknown data/messages in buffer
         ### aftertouch from Axiom 25 causes 6 in the buffer!!
-        (msg, start, endplusone, skipped, channel) = MIDIMessage.from_message_bytes(self._inbuf, self._in_channel)
+        (msg, start, endplusone, skipped, channel) = MIDIMessage.from_message_bytes(self._in_buf, self._in_channel)
         if endplusone != 0:
             # This is not particularly efficient as it's copying most of bytearray
             # and deleting old one
-            self._inbuf = self._inbuf[endplusone:]
+            self._in_buf = self._in_buf[endplusone:]
 
         self._skipped_bytes += skipped
             
