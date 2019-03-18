@@ -35,6 +35,8 @@ import adafruit_midi
 
 ### To incorporate into tests
 # This is using running status in a rather sporadic manner
+# Acutally this now looks more like losing bytes due to being
+# overwhelmed by "big" bursts of data
 #
 # Receiving:  ['0xe0', '0x67', '0x40']
 # Receiving:  ['0xe0', '0x72', '0x40']
@@ -74,7 +76,7 @@ class MIDIMessage_from_message_byte_tests(unittest.TestCase):
                          "msgendidxplusone must be 0 as buffer must be lest as is for more data")
         self.assertEqual(skipped, 0)
         self.assertIsNone(channel)
-        
+
     def test_NoteOn_predatajunk(self):
         data = bytes([0x20, 0x64, 0x90, 0x30, 0x32])
         ichannel = 0
@@ -88,6 +90,35 @@ class MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(msgendidxplusone, 5)
         self.assertEqual(skipped, 2)
         self.assertEqual(channel, 0)
+        
+    def test_NoteOn_prepartialsysex(self):
+        data = bytes([0x01, 0x02, 0x03, 0x04, 0xf7, 0x90, 0x30, 0x32])
+        ichannel = 0
+
+        (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
+
+        self.assertIsInstance(msg, adafruit_midi.NoteOn)
+        self.assertEqual(msg.note, 0x30)
+        self.assertEqual(msg.velocity, 0x32)
+        self.assertEqual(startidx, 0)
+        self.assertEqual(msgendidxplusone, 8)
+        self.assertEqual(skipped, 4, "skipped only counts data bytes so will be 4 here")
+        self.assertEqual(channel, 0)
+
+    def test_NoteOn_predsysex(self):
+        data = bytes([0xf0, 0x42, 0x01, 0x02, 0x03, 0x04, 0xf7, 0x90, 0x30, 0x32])
+        ichannel = 0
+
+        (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
+
+        self.assertIsInstance(msg, adafruit_midi.SystemExclusive)
+        self.assertEqual(msg.manufacturer_id, bytes([0x42]))   # Korg
+        self.assertEqual(msg.data, bytes([0x01, 0x02, 0x03, 0x04]))
+        self.assertEqual(startidx, 0)
+        self.assertEqual(msgendidxplusone, 7)
+        self.assertEqual(skipped, 4, "skipped only counts data bytes so will be 4 here")
+        self.assertEqual(channel, 0)        
+        
         
     def test_NoteOn_postNoteOn(self):
         data = bytes([0x90 | 0x08, 0x30, 0x7f, 0x90 | 0x08, 0x37, 0x64])
@@ -116,9 +147,9 @@ class MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(msgendidxplusone, 3)
         self.assertEqual(skipped, 0)
         self.assertEqual(channel, 0)
-        
+
     def test_NoteOn_preotherchannel(self):
-        data = bytes([0x95, 0x30, 0x7f, 0x93, 0x37, 0x64])
+        data = bytes([0x90 | 0x05, 0x30, 0x7f, 0x90 | 0x03, 0x37, 0x64])
         ichannel = 3
 
         (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
@@ -130,7 +161,7 @@ class MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(msgendidxplusone, 6)
         self.assertEqual(skipped, 0)
         self.assertEqual(channel, 3)
-        
+
     def test_NoteOn_partialandpreotherchannel(self):
         data = bytes([0x95, 0x30, 0x7f, 0x93, 0x37])
         ichannel = 3
@@ -154,7 +185,7 @@ class MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(msgendidxplusone, 1)
         self.assertEqual(skipped, 0)
         self.assertIsNone(channel)
-        
-        
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=verbose)
