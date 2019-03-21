@@ -53,13 +53,17 @@ class NoteOn(MIDIMessage):
     _STATUSMASK = 0xf0
     _LENGTH = 3
     _CHANNELMASK = 0x0f
-    
+
     def __init__(self, note, velocity):
         self.note = note
         self.velocity = velocity
-    
+
+    def as_bytes(self, channel=None):
+        return bytearray([self._STATUS | (channel & self._CHANNELMASK),
+                         self.note, self.velocity])
+
     @classmethod
     def from_bytes(cls, databytes):
         return cls(databytes[0], databytes[1])  
-   
+
 NoteOn.register_message_type()

@@ -135,6 +135,23 @@ class MIDI:
         # msg could still be None at this point, e.g. in middle of monster SysEx
         return (msg, channel)
 
+    def send(self, msg, channel=None):
+        """Sends a MIDI message.
+
+        :param MIDIMessage msg: The midi message.
+
+        """
+        if channel is None:
+            channel = self.out_channel
+        if isinstance(msg, MIDIMessage):
+            data = msg.as_bytes(channel=channel)
+        else:
+            data = bytearray()
+            for each_msg in msg:
+                data.extend(each_msg.as_bytes(channel=channel))
+                
+        self._send(data, len(data))
+        
     def note_on(self, note, vel, channel=None):
         """Sends a MIDI Note On message.
 
