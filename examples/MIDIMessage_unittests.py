@@ -23,6 +23,7 @@
 import unittest
 from unittest.mock import Mock, MagicMock
 
+
 import os
 verbose = int(os.getenv('TESTVERBOSE',2))
 
@@ -49,7 +50,7 @@ from adafruit_midi.system_exclusive import SystemExclusive
 
 ### TODO - re work these when running status is implemented
 
-class MIDIMessage_from_message_byte_tests(unittest.TestCase):
+class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
     def test_NoteOn_basic(self):
         data = bytes([0x90, 0x30, 0x7f])
         ichannel = 0
