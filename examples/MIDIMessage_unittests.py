@@ -31,7 +31,8 @@ import sys
 sys.modules['usb_midi'] = MagicMock()
 
 import adafruit_midi
-
+from adafruit_midi.note_on import NoteOn
+from adafruit_midi.system_exclusive import SystemExclusive
 
 ### To incorporate into tests
 # This is using running status in a rather sporadic manner
@@ -55,7 +56,7 @@ class MIDIMessage_from_message_byte_tests(unittest.TestCase):
 
         (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
 
-        self.assertIsInstance(msg, adafruit_midi.NoteOn)
+        self.assertIsInstance(msg, NoteOn)
         self.assertEqual(msg.note, 0x30)
         self.assertEqual(msg.velocity, 0x7f)
         self.assertEqual(startidx, 0)
@@ -83,50 +84,54 @@ class MIDIMessage_from_message_byte_tests(unittest.TestCase):
 
         (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
 
-        self.assertIsInstance(msg, adafruit_midi.NoteOn)
+        self.assertIsInstance(msg, NoteOn)
         self.assertEqual(msg.note, 0x30)
         self.assertEqual(msg.velocity, 0x32)
         self.assertEqual(startidx, 0)
-        self.assertEqual(msgendidxplusone, 5)
+        self.assertEqual(msgendidxplusone, 5,
+                         "data bytes from partial message and messages are removed" )
         self.assertEqual(skipped, 2)
         self.assertEqual(channel, 0)
         
     def test_NoteOn_prepartialsysex(self):
-        data = bytes([0x01, 0x02, 0x03, 0x04, 0xf7, 0x90, 0x30, 0x32])
+        data = bytes([0x01, 0x02, 0x03, 0x04, 0xf7,  0x90, 0x30, 0x32])
         ichannel = 0
 
         (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
 
-        self.assertIsInstance(msg, adafruit_midi.NoteOn)
+        self.assertIsInstance(msg, NoteOn,
+                              "NoteOn is expected if SystemExclusive is loaded otherwise it would be MIDIUnknownEvent")
         self.assertEqual(msg.note, 0x30)
         self.assertEqual(msg.velocity, 0x32)
         self.assertEqual(startidx, 0)
-        self.assertEqual(msgendidxplusone, 8)
+        self.assertEqual(msgendidxplusone, 8,
+                         "end of partial SysEx and message are removed")
         self.assertEqual(skipped, 4, "skipped only counts data bytes so will be 4 here")
         self.assertEqual(channel, 0)
 
     def test_NoteOn_predsysex(self):
-        data = bytes([0xf0, 0x42, 0x01, 0x02, 0x03, 0x04, 0xf7, 0x90, 0x30, 0x32])
+        data = bytes([0xf0, 0x42, 0x01, 0x02, 0x03, 0x04, 0xf7,  0x90, 0x30, 0x32])
         ichannel = 0
 
         (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
 
-        self.assertIsInstance(msg, adafruit_midi.SystemExclusive)
+        self.assertIsInstance(msg, SystemExclusive)
         self.assertEqual(msg.manufacturer_id, bytes([0x42]))   # Korg
         self.assertEqual(msg.data, bytes([0x01, 0x02, 0x03, 0x04]))
         self.assertEqual(startidx, 0)
         self.assertEqual(msgendidxplusone, 7)
-        self.assertEqual(skipped, 4, "skipped only counts data bytes so will be 4 here")
+        self.assertEqual(skipped, 4,
+                         "skipped only counts data bytes so will be 4 here")
         self.assertEqual(channel, 0)        
         
         
     def test_NoteOn_postNoteOn(self):
-        data = bytes([0x90 | 0x08, 0x30, 0x7f, 0x90 | 0x08, 0x37, 0x64])
+        data = bytes([0x90 | 0x08, 0x30, 0x7f,  0x90 | 0x08, 0x37, 0x64])
         ichannel = 8
 
         (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
 
-        self.assertIsInstance(msg, adafruit_midi.NoteOn)
+        self.assertIsInstance(msg, NoteOn)
         self.assertEqual(msg.note, 0x30)
         self.assertEqual(msg.velocity, 0x7f)
         self.assertEqual(startidx, 0)
@@ -135,52 +140,55 @@ class MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(channel, 8)
 
     def test_NoteOn_postpartialNoteOn(self):
-        data = bytes([0x90, 0x30, 0x7f, 0x90, 0x37])
+        data = bytes([0x90, 0x30, 0x7f,  0x90, 0x37])
         ichannel = 0
 
         (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
 
-        self.assertIsInstance(msg, adafruit_midi.NoteOn)
+        self.assertIsInstance(msg, NoteOn)
         self.assertEqual(msg.note, 0x30)
         self.assertEqual(msg.velocity, 0x7f)
         self.assertEqual(startidx, 0)
-        self.assertEqual(msgendidxplusone, 3)
+        self.assertEqual(msgendidxplusone, 3, 
+                         "Only first message is removed")
         self.assertEqual(skipped, 0)
         self.assertEqual(channel, 0)
 
     def test_NoteOn_preotherchannel(self):
-        data = bytes([0x90 | 0x05, 0x30, 0x7f, 0x90 | 0x03, 0x37, 0x64])
+        data = bytes([0x90 | 0x05, 0x30, 0x7f,  0x90 | 0x03, 0x37, 0x64])
         ichannel = 3
 
         (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
 
-        self.assertIsInstance(msg, adafruit_midi.NoteOn)
+        self.assertIsInstance(msg, NoteOn)
         self.assertEqual(msg.note, 0x37)
         self.assertEqual(msg.velocity, 0x64)
         self.assertEqual(startidx, 0)
-        self.assertEqual(msgendidxplusone, 6)
+        self.assertEqual(msgendidxplusone, 6,
+                         "Both messages are removed from buffer")
         self.assertEqual(skipped, 0)
         self.assertEqual(channel, 3)
 
     def test_NoteOn_partialandpreotherchannel(self):
-        data = bytes([0x95, 0x30, 0x7f, 0x93, 0x37])
+        data = bytes([0x95, 0x30, 0x7f,  0x93, 0x37])
         ichannel = 3
 
         (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
 
         self.assertIsNone(msg)
         self.assertEqual(startidx, 0)
-        self.assertEqual(msgendidxplusone, 3)
+        self.assertEqual(msgendidxplusone, 3,
+                         "first message removed, second partial left")
         self.assertEqual(skipped, 0)
         self.assertIsNone(channel)
 
-    def test_Unknown_Singlebyte(self):
+    def test_Unknown_SinglebyteStatus(self):
         data = bytes([0xfd])
         ichannel = 0
 
         (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
 
-        self.assertIsInstance(msg, adafruit_midi.MIDIUnknownEvent)
+        self.assertIsInstance(msg, adafruit_midi.midi_message.MIDIUnknownEvent)
         self.assertEqual(startidx, 0)
         self.assertEqual(msgendidxplusone, 1)
         self.assertEqual(skipped, 0)
