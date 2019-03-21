@@ -234,7 +234,7 @@ class NoteOff(MIDIMessage):
     
     def __init__(self, note, velocity):
         self.note = note
-        self.vel = velocity
+        self.velocity = velocity
     
     @classmethod
     def from_bytes(cls, databytes):
