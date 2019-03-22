@@ -168,6 +168,8 @@ class MIDIMessage:
                    else:
                        msgstartidx = msgendidxplusone
                 else:
+                    # Important case of a known message but one that is not
+                    # yet complete - leave bytes in buffer and wait for more
                     break
             else:
                 msg = MIDIUnknownEvent(status)
