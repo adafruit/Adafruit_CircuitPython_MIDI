@@ -148,14 +148,26 @@ class MIDIMessage:
                         if msgclass._CHANNELMASK is not None:
                             channel = status & msgclass._CHANNELMASK
                             channel_match_orNA = channel_filter(channel, channel_in)
-                        if msgclass._LENGTH < 0:
-                            # TODO code this properly - THIS IS VARIABLE LENGTH MESSAGE
-                            complete_message = False
-                            msgendidxplusone = endidx + 1   # TODO NOT CORRECT
+
+                        bad_termination = False
+                        if msgclass._LENGTH < 0:  # indicator of variable length message
+                            terminated_message = False
+                            msgendidxplusone = msgstartidx + 1
+                            while msgendidxplusone <= endidx:
+                                if midibytes[msgendidxplusone] & 0x80:
+                                    if midibytes[msgendidxplusone] == msgclass._ENDSTATUS:
+                                        terminated_message = True
+                                    else:
+                                        bad_termination = True
+                                    break
+                                else:
+                                    msgendidxplusone += 1
+                            if terminated_message or bad_termination:
+                                msgendidxplusone += 1                            
                         else:
                             msgendidxplusone = msgstartidx + msgclass._LENGTH
-                    
-                        if channel_match_orNA:
+
+                        if not bad_termination and channel_match_orNA:
                             msg = msgclass.from_bytes(midibytes[msgstartidx+1:msgendidxplusone])
                     break  # for
 
@@ -163,10 +175,10 @@ class MIDIMessage:
             # or we have one we do not know about
             if known_message:
                 if complete_message:
-                   if channel_match_orNA:
-                       break
-                   else:
-                       msgstartidx = msgendidxplusone
+                    if channel_match_orNA:
+                        break
+                    else:
+                        msgstartidx = msgendidxplusone
                 else:
                     # Important case of a known message but one that is not
                     # yet complete - leave bytes in buffer and wait for more
@@ -177,12 +189,7 @@ class MIDIMessage:
                 # next read will skip past leftover data bytes
                 msgendidxplusone = msgstartidx + 1
                 break
-                   
-        ### TODO THIS IS NOW BUGGY DUE TO 
-                   
-        ### TODO correct to handle a buffer with start of big SysEx
-        ### TODO correct to handle a buffer in middle of big SysEx
-        ### TODO correct to handle a buffer with end portion of big SysEx
+
         if msg is not None:
             return (msg, startidx, msgendidxplusone, skipped, channel)
         else:

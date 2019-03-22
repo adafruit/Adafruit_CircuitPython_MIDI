@@ -60,9 +60,10 @@ class SystemExclusive(MIDIMessage):
 
     @classmethod
     def from_bytes(cls, databytes):
+        # -1 on second arg is to avoid the _ENDSTATUS which is passed
         if databytes[0] != 0:
-            return cls(databytes[0:1], databytes[1:])
+            return cls(databytes[0:1], databytes[1:-1])
         else:
-            return cls(databytes[0:3], databytes[3:])
-    
+            return cls(databytes[0:3], databytes[3:-1])
+
 SystemExclusive.register_message_type()

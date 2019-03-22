@@ -110,22 +110,6 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
                          "end of partial SysEx and message are removed")
         self.assertEqual(skipped, 4, "skipped only counts data bytes so will be 4 here")
         self.assertEqual(channel, 0)
-
-    def test_NoteOn_predsysex(self):
-        data = bytes([0xf0, 0x42, 0x01, 0x02, 0x03, 0x04, 0xf7,  0x90, 0x30, 0x32])
-        ichannel = 0
-
-        (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
-
-        self.assertIsInstance(msg, SystemExclusive)
-        self.assertEqual(msg.manufacturer_id, bytes([0x42]))   # Korg
-        self.assertEqual(msg.data, bytes([0x01, 0x02, 0x03, 0x04]))
-        self.assertEqual(startidx, 0)
-        self.assertEqual(msgendidxplusone, 7)
-        self.assertEqual(skipped, 4,
-                         "skipped only counts data bytes so will be 4 here")
-        self.assertEqual(channel, 0)        
-        
         
     def test_NoteOn_postNoteOn(self):
         data = bytes([0x90 | 0x08, 0x30, 0x7f,  0x90 | 0x08, 0x37, 0x64])
@@ -225,6 +209,36 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(skipped, 0)
         self.assertIsNone(channel)
 
+    def test_SystemExclusive_NoteOn(self):
+        data = bytes([0xf0, 0x42, 0x01, 0x02, 0x03, 0x04, 0xf7,  0x90, 0x30, 0x32])
+        ichannel = 0
+
+        (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
+
+        self.assertIsInstance(msg, SystemExclusive)
+        self.assertEqual(msg.manufacturer_id, bytes([0x42]))   # Korg
+        self.assertEqual(msg.data, bytes([0x01, 0x02, 0x03, 0x04]))
+        self.assertEqual(startidx, 0)
+        self.assertEqual(msgendidxplusone, 7)
+        self.assertEqual(skipped, 0,
+                         "If SystemExclusive class is imported then this must be 0")
+        self.assertIsNone(channel)
+        ### TODO - call  MIDIMessage.from_message_bytes for second part of buffer       
+
+    def test_SystemExclusive_NoteOn_premalterminatedsysex(self):
+        data = bytes([0xf0, 0x42, 0x01, 0x02, 0x03, 0x04, 0xf0,  0x90, 0x30, 0x32])
+        ichannel = 0
+        
+        # 0xf0 is incorrect status to mark end of this message, must be 0xf7
+        (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
+
+        self.assertIsNone(msg)
+        self.assertEqual(startidx, 0)
+        self.assertEqual(msgendidxplusone, 7)
+        self.assertEqual(skipped, 0,
+                         "If SystemExclusive class is imported then this must be 0")
+        self.assertIsNone(channel, None)
+
     def test_Unknown_SinglebyteStatus(self):
         data = bytes([0xfd])
         ichannel = 0
@@ -237,6 +251,18 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(skipped, 0)
         self.assertIsNone(channel)
 
+    def test_Empty(self):
+        data = bytes([])
+        ichannel = 0
 
+        (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
+
+        self.assertIsNone(msg)
+        self.assertEqual(startidx, 0)
+        self.assertEqual(msgendidxplusone, 0)
+        self.assertEqual(skipped, 0)
+        self.assertIsNone(channel)        
+
+        
 if __name__ == '__main__':
     unittest.main(verbosity=verbose)
