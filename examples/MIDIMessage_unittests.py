@@ -94,11 +94,23 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
                          "data bytes from partial message and messages are removed" )
         self.assertEqual(skipped, 2)
         self.assertEqual(channel, 0)
-        
+
     def test_NoteOn_prepartialsysex(self):
         data = bytes([0x01, 0x02, 0x03, 0x04, 0xf7,  0x90, 0x30, 0x32])
         ichannel = 0
+        
+        (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
 
+        # MIDIMessage parsing could be improved to return something that
+        # indicates its a truncated end of SysEx
+        self.assertIsInstance(msg, adafruit_midi.midi_message.MIDIUnknownEvent)
+        self.assertEqual(msg.status, 0xf7)
+        self.assertEqual(startidx, 0)
+        self.assertEqual(msgendidxplusone, 5, "removal of the end of the partial SysEx data and terminating status byte")
+        self.assertEqual(skipped, 4, "skipped only counts data bytes so will be 4 here")
+        self.assertIsNone(channel)
+        
+        data = data[msgendidxplusone:]
         (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
 
         self.assertIsInstance(msg, NoteOn,
@@ -106,9 +118,8 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(msg.note, 0x30)
         self.assertEqual(msg.velocity, 0x32)
         self.assertEqual(startidx, 0)
-        self.assertEqual(msgendidxplusone, 8,
-                         "end of partial SysEx and message are removed")
-        self.assertEqual(skipped, 4, "skipped only counts data bytes so will be 4 here")
+        self.assertEqual(msgendidxplusone, 3, "NoteOn message removed")
+        self.assertEqual(skipped, 0) 
         self.assertEqual(channel, 0)
         
     def test_NoteOn_postNoteOn(self):

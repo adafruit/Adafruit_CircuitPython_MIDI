@@ -171,7 +171,7 @@ class MIDIMessage:
                             msg = msgclass.from_bytes(midibytes[msgstartidx+1:msgendidxplusone])
                     break  # for
 
-            # break out of while loop if we have a complete message
+            # break out of while loop for a complete message on good channel
             # or we have one we do not know about
             if known_message:
                 if complete_message:
