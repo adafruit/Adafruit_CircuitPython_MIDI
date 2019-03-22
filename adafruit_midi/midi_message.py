@@ -112,14 +112,19 @@ class MIDIMessage:
         startidx = 0
         endidx = len(midibytes) - 1
         skipped = 0
+        preamble = True
         
         msgstartidx = startidx
+        msgendidxplusone = 0
         while True:
             # Look for a status byte
             # Second rule of the MIDI club is status bytes have MSB set
             while msgstartidx <= endidx and not (midibytes[msgstartidx] & 0x80):
                 msgstartidx += 1
-                skipped += 1
+                if preamble:
+                    skipped += 1
+            
+            preamble = False
 
             # Either no message or a partial one
             if msgstartidx > endidx:
@@ -128,39 +133,48 @@ class MIDIMessage:
                 return (None, startidx, endidx + 1, skipped, None)
 
             status = midibytes[msgstartidx]
-            msgendidxplusone = 0
-            smfound = False
-            channel_match = True
+            known_message = False
+            complete_message = False
+            channel_match_orNA = True
             channel = None
             # Rummage through our list looking for a status match
             for sm, msgclass in MIDIMessage._statusandmask_to_class:
                 masked_status = status & sm[1]
                 if sm[0] == masked_status:
-                    smfound = True
+                    known_message = True
                     # Check there's enough left to parse a complete message
-                    if len(midibytes) - msgstartidx >= msgclass._LENGTH:
+                    complete_message = len(midibytes) - msgstartidx >= msgclass._LENGTH
+                    if complete_message:
                         if msgclass._CHANNELMASK is not None:
                             channel = status & msgclass._CHANNELMASK
-                            channel_match = channel_filter(channel, channel_in)
+                            channel_match_orNA = channel_filter(channel, channel_in)
                         if msgclass._LENGTH < 0:
                             # TODO code this properly - THIS IS VARIABLE LENGTH MESSAGE
+                            complete_message = False
                             msgendidxplusone = endidx + 1   # TODO NOT CORRECT
                         else:
                             msgendidxplusone = msgstartidx + msgclass._LENGTH
                     
-                        if channel_match:
+                        if channel_match_orNA:
                             msg = msgclass.from_bytes(midibytes[msgstartidx+1:msgendidxplusone])
-                    break # for
-            if smfound and channel_match:
-                break # while
-            elif not smfound:
+                    break  # for
+
+            # break out of while loop if we have a complete message
+            # or we have one we do not know about
+            if known_message:
+                if complete_message:
+                   if channel_match_orNA:
+                       break
+                   else:
+                       msgstartidx = msgendidxplusone
+                else:
+                    break
+            else:
                 msg = MIDIUnknownEvent(status)
                 # length cannot be known
                 # next read will skip past leftover data bytes
                 msgendidxplusone = msgstartidx + 1
                 break
-            else:
-                msgstartidx = msgendidxplusone
                    
         ### TODO THIS IS NOW BUGGY DUE TO 
                    
@@ -185,5 +199,3 @@ class MIDIUnknownEvent(MIDIMessage):
     
     def __init__(self, status):
         self.status = status
-
-        
