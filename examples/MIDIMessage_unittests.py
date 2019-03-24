@@ -32,8 +32,19 @@ import sys
 sys.modules['usb_midi'] = MagicMock()
 
 import adafruit_midi
-from adafruit_midi.note_on import NoteOn
-from adafruit_midi.system_exclusive import SystemExclusive
+
+# Full monty
+from adafruit_midi.channel_pressure        import ChannelPressure
+from adafruit_midi.control_change          import ControlChange
+from adafruit_midi.note_off                import NoteOff
+from adafruit_midi.note_on                 import NoteOn
+from adafruit_midi.pitch_bend_change       import PitchBendChange
+from adafruit_midi.polyphonic_key_pressure import PolyphonicKeyPressure
+from adafruit_midi.program_change          import ProgramChange
+from adafruit_midi.start                   import Start
+from adafruit_midi.stop                    import Stop
+from adafruit_midi.system_exclusive        import SystemExclusive
+from adafruit_midi.timing_clock            import TimingClock
 
 ### To incorporate into tests
 # This is using running status in a rather sporadic manner
@@ -296,9 +307,9 @@ class Test_MIDIMessage_NoteOn_constructor(unittest.TestCase):
         self.assertEqual(object2.note, 48)
         self.assertEqual(object2.velocity, 0x7f)
         
-        object3 = NoteOn("C#4", 0x7f)
+        object3 = NoteOn("C#4", 0x00)
         self.assertEqual(object3.note, 61)
-        self.assertEqual(object3.velocity, 0x7f)
+        self.assertEqual(object3.velocity, 0)
 
     def test_NoteOn_constructor_valueerror1(self):
         with self.assertRaises(ValueError):
@@ -319,12 +330,54 @@ class Test_MIDIMessage_NoteOn_constructor(unittest.TestCase):
         
     def test_NoteOn_constructor_upperrange2(self):    
         with self.assertRaises(ValueError):
-            object = NoteOn("G#9", 0x7f)
+            object = NoteOn("G#9", 0x7f)  # just above max note
             
     def test_NoteOn_constructor_bogusstring(self):
         with self.assertRaises(ValueError):
             object = NoteOn("CC4", 0x7f)
 
+            
+class Test_MIDIMessage_NoteOff_constructor(unittest.TestCase):
+    # mostly cut and paste from NoteOn above
+    def test_NoteOff_constructor_string(self):
+        object1 = NoteOff("C4", 0x64)
+        self.assertEqual(object1.note, 60)
+        self.assertEqual(object1.velocity, 0x64)
 
+        object2 = NoteOff("C3", 0x7f)
+        self.assertEqual(object2.note, 48)
+        self.assertEqual(object2.velocity, 0x7f)
+        
+        object3 = NoteOff("C#4", 0x00)
+        self.assertEqual(object3.note, 61)
+        self.assertEqual(object3.velocity, 0)
+
+    def test_NoteOff_constructor_valueerror1(self):
+        with self.assertRaises(ValueError):
+            object1 = NoteOff(60, 0x80)
+    
+    def test_NoteOff_constructor_valueerror2(self):    
+        with self.assertRaises(ValueError):
+            object2 = NoteOff(-1, 0x7f)
+    
+    def test_NoteOff_constructor_valueerror3(self):
+        with self.assertRaises(ValueError):
+            object3 = NoteOff(128, 0x7f)
+
+    def test_NoteOff_constructor_upperrange1(self):
+        object = NoteOff("G9", 0x7f)
+        self.assertEqual(object.note, 127)
+        self.assertEqual(object.velocity, 0x7f)
+        
+    def test_NoteOff_constructor_upperrange2(self):    
+        with self.assertRaises(ValueError):
+            object = NoteOff("G#9", 0x7f)  # just above max note
+            
+    def test_NoteOff_constructor_bogusstring(self):
+        with self.assertRaises(ValueError):
+            object = NoteOff("CC4", 0x7f)
+            
+            
+            
 if __name__ == '__main__':
     unittest.main(verbosity=verbose)
