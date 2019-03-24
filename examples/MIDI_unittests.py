@@ -74,7 +74,7 @@ class Test_MIDI(unittest.TestCase):
     def test_largerthanbuffersysex(self):
         self.assertEqual(TODO, TODO)
 
-    def test_send_basic(self):
+    def test_send_basic_single(self):
         #def printit(buffer, len):
         #    print(buffer[0:len])
         mockedPortIn = Mock()
@@ -120,6 +120,16 @@ class Test_MIDI(unittest.TestCase):
                          call(b'\x89\x6c\x7f', 3))
         next += 1
 
+    def test_send_basic_sequences(self):
+        #def printit(buffer, len):
+        #    print(buffer[0:len])
+        mockedPortIn = Mock()
+        #mockedPortIn.write = printit
+        
+        m = adafruit_midi.MIDI(midi_out=mockedPortIn, out_channel=2)
+
+        # Test sending some NoteOn and NoteOff to various channels
+        next = 0
         # Test the list syntax
         note_list = [NoteOn(0x6c, 0x51),
                      NoteOn(0x70, 0x52),
@@ -135,7 +145,7 @@ class Test_MIDI(unittest.TestCase):
                          call(b'\x9b\x6c\x51\x9b\x70\x52\x9b\x73\x53', 9),
                          "The implementation writes in one go, single 9 byte write expected")
         next += 1
-
+        
         
 if __name__ == '__main__':
     unittest.main(verbosity=verbose)
