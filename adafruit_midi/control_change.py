@@ -58,6 +58,11 @@ class ControlChange(MIDIMessage):
         self.control = control
         self.value = value
     
+    # channel value is mandatory
+    def as_bytes(self, channel=None):
+        return bytearray([self._STATUS | (channel & self._CHANNELMASK),
+                          self.control, self.value])
+
     @classmethod
     def from_bytes(cls, databytes):
         return cls(databytes[0], databytes[1])  

@@ -57,6 +57,12 @@ class PitchBendChange(MIDIMessage):
     def __init__(self, pitch_bend):
         self.pitch_bend = pitch_bend
     
+    # channel value is mandatory
+    def as_bytes(self, channel=None):
+        return bytearray([self._STATUS | (channel & self._CHANNELMASK),
+                          self.pitch_bend & 0x7f,
+                          (self.pitch_bend >> 7) & 0x7f])
+                         
     @classmethod
     def from_bytes(cls, databytes):
         return cls(databytes[1] << 7 | databytes[0])  

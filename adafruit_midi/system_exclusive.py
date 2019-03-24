@@ -58,6 +58,13 @@ class SystemExclusive(MIDIMessage):
         self.manufacturer_id = manufacturer_id
         self.data = data
 
+    # channel value present to keep interface uniform but unused
+    def as_bytes(self, channel=None):
+        return (bytearray([self._STATUS])
+                + self.manufacturer_id
+                + self.data
+                + [self._ENDSTATUS])
+                        
     @classmethod
     def from_bytes(cls, databytes):
         # -1 on second arg is to avoid the _ENDSTATUS which is passed

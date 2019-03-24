@@ -48,8 +48,7 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 
-# Would be good to have this registered first as it occurs
-# frequently when in-use
+# Good to have this registered first as it occurs frequently when present
 class TimingClock(MIDIMessage):
     _STATUS = 0xf8
     _STATUSMASK = 0xff

@@ -53,6 +53,9 @@ ALL_CHANNELS = -1
 note_offset = [9, 11, 12, 14, 16, 17, 19]
 
 def channel_filter(channel, channel_spec):
+    """
+    Utility function to return True iff the given channel matches channel_spec.
+    """
     if isinstance(channel_spec, int):
         if channel_spec == ALL_CHANNELS:
             return True
@@ -225,9 +228,15 @@ class MIDIMessage:
         else:
             return (None, startidx, msgendidxplusone, skipped, None)
 
+    # channel value present to keep interface uniform but unused
+    def as_bytes(self, channel=None):
+        """A default method for constructing wire messages with no data.
+        Returns a (mutable) bytearray with just status code in."""
+        return bytearray([self._STATUS])
+
     @classmethod
     def from_bytes(cls, databytes):
-        """A default method for constructing messages that have no data.
+        """A default method for constructing message objects with no data.
            Returns the new object."""
         return cls()
 
@@ -235,6 +244,6 @@ class MIDIMessage:
 # DO NOT try to register this message
 class MIDIUnknownEvent(MIDIMessage):
     _LENGTH = -1
-    
+
     def __init__(self, status):
         self.status = status
