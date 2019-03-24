@@ -48,6 +48,9 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 ALL_CHANNELS = -1
 
+# From C3
+# Semitones    A   B   C   D   E   F   G
+note_offset = [9, 11, 12, 14, 16, 17, 19]
 
 def channel_filter(channel, channel_spec):
     if isinstance(channel_spec, int):
@@ -60,6 +63,33 @@ def channel_filter(channel, channel_spec):
     else:
         raise ValueError("Incorrect type for channel_spec")
 
+# TODO - proper parameter typing and look up how this is done when different types are accepted     
+def note_parser(note):
+    """
+    If note is a string then it will be parsed and converted to a MIDI note (key) number, e.g.
+    "C4" will return 60, "C#4" will return 61. If note is not a string it will simply be returned.
+    
+    Applies a range check to both string and integer inputs.
+    """
+    midi_note = note
+    if isinstance(note, str):
+        if len(note) < 2:
+            raise ValueError("Bad note format")
+        noteidx = ord(note[0].upper()) - 65  # 65 os ord('A')
+        if not 0 <= noteidx <= 6:
+           raise ValueError("Bad note")
+        sharpen = 0
+        if note[1] == '#':
+            sharpen = 1
+        elif note[1] == 'b':
+            sharpen = -1
+        # int may throw exception here
+        midi_note = (int(note[1 + abs(sharpen):]) * 12
+                     + note_offset[noteidx]
+                     + sharpen)
+
+    return midi_note
+        
 # TODO TBD: can relocate this class later to a separate file if recommended
 class MIDIMessage:
     """

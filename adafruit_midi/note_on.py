@@ -42,7 +42,7 @@ Implementation Notes
 
 """
 
-from .midi_message import MIDIMessage
+from .midi_message import MIDIMessage, note_parser
 
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
@@ -55,9 +55,12 @@ class NoteOn(MIDIMessage):
     _CHANNELMASK = 0x0f
 
     def __init__(self, note, velocity):
-        self.note = note
+        self.note = note_parser(note)
         self.velocity = velocity
-
+        if not 0 <= self.note <= 127 or not 0 <= self.velocity <= 127:
+           raise ValueError("Out of range")
+           
+    # channel value is mandatory
     def as_bytes(self, channel=None):
         return bytearray([self._STATUS | (channel & self._CHANNELMASK),
                          self.note, self.velocity])

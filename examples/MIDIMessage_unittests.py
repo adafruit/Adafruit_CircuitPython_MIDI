@@ -220,6 +220,17 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(skipped, 0)
         self.assertIsNone(channel)
 
+    def test_NoteOn_constructor_int(self):
+        object1 = NoteOn(60, 0x7f)
+        
+        self.assertEqual(object1.note, 60)
+        self.assertEqual(object1.velocity, 0x7f)
+
+        object2 = NoteOn(60, 0x00)  # equivalent of NoteOff
+        
+        self.assertEqual(object2.note, 60)
+        self.assertEqual(object2.velocity, 0x00)
+        
     def test_SystemExclusive_NoteOn(self):
         data = bytes([0xf0, 0x42, 0x01, 0x02, 0x03, 0x04, 0xf7,  0x90, 0x30, 0x32])
         ichannel = 0
@@ -275,5 +286,45 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertIsNone(channel)        
 
         
+class Test_MIDIMessage_NoteOn_constructor(unittest.TestCase):
+    def test_NoteOn_constructor_string(self):
+        object1 = NoteOn("C4", 0x64)
+        self.assertEqual(object1.note, 60)
+        self.assertEqual(object1.velocity, 0x64)
+
+        object2 = NoteOn("C3", 0x7f)
+        self.assertEqual(object2.note, 48)
+        self.assertEqual(object2.velocity, 0x7f)
+        
+        object3 = NoteOn("C#4", 0x7f)
+        self.assertEqual(object3.note, 61)
+        self.assertEqual(object3.velocity, 0x7f)
+
+    def test_NoteOn_constructor_valueerror1(self):
+        with self.assertRaises(ValueError):
+            object1 = NoteOn(60, 0x80)
+    
+    def test_NoteOn_constructor_valueerror2(self):    
+        with self.assertRaises(ValueError):
+            object2 = NoteOn(-1, 0x7f)
+    
+    def test_NoteOn_constructor_valueerror3(self):
+        with self.assertRaises(ValueError):
+            object3 = NoteOn(128, 0x7f)
+
+    def test_NoteOn_constructor_upperrange1(self):
+        object = NoteOn("G9", 0x7f)
+        self.assertEqual(object.note, 127)
+        self.assertEqual(object.velocity, 0x7f)
+        
+    def test_NoteOn_constructor_upperrange2(self):    
+        with self.assertRaises(ValueError):
+            object = NoteOn("G#9", 0x7f)
+            
+    def test_NoteOn_constructor_bogusstring(self):
+        with self.assertRaises(ValueError):
+            object = NoteOn("CC4", 0x7f)
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=verbose)
