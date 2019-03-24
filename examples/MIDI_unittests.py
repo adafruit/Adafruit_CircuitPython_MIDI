@@ -110,6 +110,7 @@ class Test_MIDI(unittest.TestCase):
                          call(b'\x82\x67\x02', 3))
         next += 1
         
+        # Setting channel to non default
         m.send(NoteOn(0x6c, 0x7f), channel=9)
         self.assertEqual(mockedPortIn.write.mock_calls[next],
                          call(b'\x99\x6c\x7f', 3))
@@ -120,6 +121,29 @@ class Test_MIDI(unittest.TestCase):
                          call(b'\x89\x6c\x7f', 3))
         next += 1
 
+    def test_send_badnotes(self):
+        mockedPortIn = Mock()
+        
+        m = adafruit_midi.MIDI(midi_out=mockedPortIn, out_channel=2)
+
+        # Test sending some NoteOn and NoteOff to various channels
+        next = 0
+        m.send(NoteOn(60, 0x7f))
+        self.assertEqual(mockedPortIn.write.mock_calls[next],
+                         call(b'\x92\x3c\x7f', 3))
+        next += 1
+        with self.assertRaises(ValueError):
+            m.send(NoteOn(64, 0x80)) # Velocity > 127 - illegal value
+
+        with self.assertRaises(ValueError):
+            m.send(NoteOn(67, -1))
+
+        # test after exceptions to ensure sending is still ok
+        m.send(NoteOn(72, 0x7f))
+        self.assertEqual(mockedPortIn.write.mock_calls[next],
+                         call(b'\x92\x48\x7f', 3))
+        next += 1
+        
     def test_send_basic_sequences(self):
         #def printit(buffer, len):
         #    print(buffer[0:len])
@@ -130,7 +154,7 @@ class Test_MIDI(unittest.TestCase):
 
         # Test sending some NoteOn and NoteOff to various channels
         next = 0
-        # Test the list syntax
+        # Test sequences with list syntax and pass a tuple too
         note_list = [NoteOn(0x6c, 0x51),
                      NoteOn(0x70, 0x52),
                      NoteOn(0x73, 0x53)];
@@ -145,7 +169,7 @@ class Test_MIDI(unittest.TestCase):
                          call(b'\x9b\x6c\x51\x9b\x70\x52\x9b\x73\x53', 9),
                          "The implementation writes in one go, single 9 byte write expected")
         next += 1
-        
-        
+
+
 if __name__ == '__main__':
     unittest.main(verbosity=verbose)
