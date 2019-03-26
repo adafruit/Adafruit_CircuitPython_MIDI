@@ -30,8 +30,19 @@ verbose = int(os.getenv('TESTVERBOSE',2))
 import sys
 sys.modules['usb_midi'] = MagicMock()
 
-from adafruit_midi.note_on     import NoteOn
-from adafruit_midi.note_off    import NoteOff
+# Full monty
+from adafruit_midi.channel_pressure        import ChannelPressure
+from adafruit_midi.control_change          import ControlChange
+from adafruit_midi.note_off                import NoteOff
+from adafruit_midi.note_on                 import NoteOn
+from adafruit_midi.pitch_bend_change       import PitchBendChange
+from adafruit_midi.polyphonic_key_pressure import PolyphonicKeyPressure
+from adafruit_midi.program_change          import ProgramChange
+from adafruit_midi.start                   import Start
+from adafruit_midi.stop                    import Stop
+from adafruit_midi.system_exclusive        import SystemExclusive
+from adafruit_midi.timing_clock            import TimingClock
+
 
 import adafruit_midi
 
@@ -68,68 +79,112 @@ class Test_MIDI(unittest.TestCase):
     def test_somegoodsomemissingdatabytes(self):
         self.assertEqual(TODO, TODO)
 
-    def test_smallsysex(self):
-        self.assertEqual(TODO, TODO)
+    def test_smallsysex_between_notes(self):
+        usb_data = bytearray()
+        def write(buffer, length):
+            nonlocal usb_data
+            usb_data.extend(buffer[0:length])
+            
+        def read(length):
+            nonlocal usb_data
+            poppedbytes = usb_data[0:length]
+            usb_data = usb_data[len(poppedbytes):]
+            return bytes(poppedbytes)
+        
+        mockedPortIn = Mock()
+        mockedPortIn.read = read
+        mockedPortOut = Mock()
+        mockedPortOut.write = write
+        m = adafruit_midi.MIDI(midi_out=mockedPortOut, midi_in=mockedPortIn,
+                               out_channel=3, in_channel=3)
+
+        m.send([NoteOn("C4", 0x7f),
+                SystemExclusive([0x1f], [1, 2, 3, 4, 5, 6, 7, 8]),
+                NoteOff(60, 0x28)])
+
+        (msg1, channel1) = m.read_in_port()
+        self.assertIsInstance(msg1, NoteOn)
+        self.assertEqual(msg1.note, 60)
+        self.assertEqual(msg1.velocity, 0x7f)
+        self.assertEqual(channel1, 3)
+        
+        (msg2, channel2) = m.read_in_port()
+        self.assertIsInstance(msg2, SystemExclusive)
+        self.assertEqual(msg2.manufacturer_id, bytearray([0x1f]))
+        self.assertEqual(msg2.data, bytearray([1, 2, 3, 4, 5, 6, 7, 8]))
+        self.assertEqual(channel2, None)  # SysEx does not have a channel
+        
+        (msg3, channel3) = m.read_in_port()
+        self.assertIsInstance(msg3, NoteOff)
+        self.assertEqual(msg3.note, 60)
+        self.assertEqual(msg3.velocity, 0x28)
+        self.assertEqual(channel3, 3)
+        
+        (msg4, channel4) = m.read_in_port()
+        self.assertIsNone(msg4)
+        self.assertIsNone(channel4)
 
     def test_largerthanbuffersysex(self):
         self.assertEqual(TODO, TODO)
 
+
+class Test_MIDI_send(unittest.TestCase):
     def test_send_basic_single(self):
         #def printit(buffer, len):
         #    print(buffer[0:len])
-        mockedPortIn = Mock()
-        #mockedPortIn.write = printit
+        mockedPortOut = Mock()
+        #mockedPortOut.write = printit
         
-        m = adafruit_midi.MIDI(midi_out=mockedPortIn, out_channel=2)
+        m = adafruit_midi.MIDI(midi_out=mockedPortOut, out_channel=2)
 
         # Test sending some NoteOn and NoteOff to various channels
         next = 0
         m.send(NoteOn(0x60, 0x7f))
-        self.assertEqual(mockedPortIn.write.mock_calls[next],
+        self.assertEqual(mockedPortOut.write.mock_calls[next],
                          call(b'\x92\x60\x7f', 3))
         next += 1
         m.send(NoteOn(0x64, 0x3f))
-        self.assertEqual(mockedPortIn.write.mock_calls[next],
+        self.assertEqual(mockedPortOut.write.mock_calls[next],
                          call(b'\x92\x64\x3f', 3))
         next += 1
         m.send(NoteOn(0x67, 0x1f))
-        self.assertEqual(mockedPortIn.write.mock_calls[next],
+        self.assertEqual(mockedPortOut.write.mock_calls[next],
                          call(b'\x92\x67\x1f', 3))
         next += 1
         
         m.send(NoteOn(0x60, 0x00))  # Alternative to NoteOff
-        self.assertEqual(mockedPortIn.write.mock_calls[next],
+        self.assertEqual(mockedPortOut.write.mock_calls[next],
                          call(b'\x92\x60\x00', 3))
         next += 1
         m.send(NoteOff(0x64, 0x01))
-        self.assertEqual(mockedPortIn.write.mock_calls[next],
+        self.assertEqual(mockedPortOut.write.mock_calls[next],
                          call(b'\x82\x64\x01', 3))
         next += 1
         m.send(NoteOff(0x67, 0x02))
-        self.assertEqual(mockedPortIn.write.mock_calls[next],
+        self.assertEqual(mockedPortOut.write.mock_calls[next],
                          call(b'\x82\x67\x02', 3))
         next += 1
         
         # Setting channel to non default
         m.send(NoteOn(0x6c, 0x7f), channel=9)
-        self.assertEqual(mockedPortIn.write.mock_calls[next],
+        self.assertEqual(mockedPortOut.write.mock_calls[next],
                          call(b'\x99\x6c\x7f', 3))
         next += 1
         
         m.send(NoteOff(0x6c, 0x7f), channel=9)
-        self.assertEqual(mockedPortIn.write.mock_calls[next],
+        self.assertEqual(mockedPortOut.write.mock_calls[next],
                          call(b'\x89\x6c\x7f', 3))
         next += 1
 
     def test_send_badnotes(self):
-        mockedPortIn = Mock()
+        mockedPortOut = Mock()
         
-        m = adafruit_midi.MIDI(midi_out=mockedPortIn, out_channel=2)
+        m = adafruit_midi.MIDI(midi_out=mockedPortOut, out_channel=2)
 
         # Test sending some NoteOn and NoteOff to various channels
         next = 0
         m.send(NoteOn(60, 0x7f))
-        self.assertEqual(mockedPortIn.write.mock_calls[next],
+        self.assertEqual(mockedPortOut.write.mock_calls[next],
                          call(b'\x92\x3c\x7f', 3))
         next += 1
         with self.assertRaises(ValueError):
@@ -140,17 +195,17 @@ class Test_MIDI(unittest.TestCase):
 
         # test after exceptions to ensure sending is still ok
         m.send(NoteOn(72, 0x7f))
-        self.assertEqual(mockedPortIn.write.mock_calls[next],
+        self.assertEqual(mockedPortOut.write.mock_calls[next],
                          call(b'\x92\x48\x7f', 3))
         next += 1
         
     def test_send_basic_sequences(self):
         #def printit(buffer, len):
         #    print(buffer[0:len])
-        mockedPortIn = Mock()
-        #mockedPortIn.write = printit
+        mockedPortOut = Mock()
+        #mockedPortOut.write = printit
         
-        m = adafruit_midi.MIDI(midi_out=mockedPortIn, out_channel=2)
+        m = adafruit_midi.MIDI(midi_out=mockedPortOut, out_channel=2)
 
         # Test sending some NoteOn and NoteOff to various channels
         next = 0
@@ -160,16 +215,20 @@ class Test_MIDI(unittest.TestCase):
                      NoteOn(0x73, 0x53)];
         note_tuple = tuple(note_list)
         m.send(note_list, channel=10)
-        self.assertEqual(mockedPortIn.write.mock_calls[next],
+        self.assertEqual(mockedPortOut.write.mock_calls[next],
                          call(b'\x9a\x6c\x51\x9a\x70\x52\x9a\x73\x53', 9),
                          "The implementation writes in one go, single 9 byte write expected")
         next += 1
         m.send(note_tuple, channel=11)
-        self.assertEqual(mockedPortIn.write.mock_calls[next],
+        self.assertEqual(mockedPortOut.write.mock_calls[next],
                          call(b'\x9b\x6c\x51\x9b\x70\x52\x9b\x73\x53', 9),
                          "The implementation writes in one go, single 9 byte write expected")
         next += 1
 
+class Test_MIDI_send_receive_loop(unittest.TestCase):
+    def test_do_something_that_collects_sent_data_then_parses_it(self):
+        self.assertEqual(TODO, TODO)
 
+        
 if __name__ == '__main__':
     unittest.main(verbosity=verbose)

@@ -55,15 +55,15 @@ class SystemExclusive(MIDIMessage):
     _ENDSTATUS = 0xf7
 
     def __init__(self, manufacturer_id, data):
-        self.manufacturer_id = manufacturer_id
-        self.data = data
+        self.manufacturer_id = bytearray(manufacturer_id)
+        self.data = bytearray(data)
 
     # channel value present to keep interface uniform but unused
     def as_bytes(self, channel=None):
         return (bytearray([self._STATUS])
                 + self.manufacturer_id
                 + self.data
-                + [self._ENDSTATUS])
+                + bytearray([self._ENDSTATUS]))
                         
     @classmethod
     def from_bytes(cls, databytes):
