@@ -336,7 +336,7 @@ class Test_MIDIMessage_NoteOn_constructor(unittest.TestCase):
         with self.assertRaises(ValueError):
             object = NoteOn("CC4", 0x7f)
 
-            
+
 class Test_MIDIMessage_NoteOff_constructor(unittest.TestCase):
     # mostly cut and paste from NoteOn above
     def test_NoteOff_constructor_string(self):
