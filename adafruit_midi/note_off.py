@@ -58,7 +58,7 @@ class NoteOff(MIDIMessage):
         self.note = note_parser(note)
         self.velocity = velocity
         if not 0 <= self.note <= 127 or not 0 <= self.velocity <= 127:
-           raise ValueError("Out of range")
+            raise ValueError("Out of range")
 
     # channel value is mandatory
     def as_bytes(self, channel=None):
