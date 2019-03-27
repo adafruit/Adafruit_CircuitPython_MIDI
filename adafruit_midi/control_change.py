@@ -57,7 +57,9 @@ class ControlChange(MIDIMessage):
     def __init__(self, control, value):
         self.control = control
         self.value = value
-    
+        if not 0 <= self.control <= 127 or not 0 <= self.value <= 127:
+            raise ValueError("Out of range")
+
     # channel value is mandatory
     def as_bytes(self, channel=None):
         return bytearray([self._STATUS | (channel & self._CHANNELMASK),

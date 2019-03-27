@@ -53,10 +53,12 @@ class ChannelPressure(MIDIMessage):
     _STATUSMASK = 0xf0
     _LENGTH = 2
     _CHANNELMASK = 0x0f
-    
+
     def __init__(self, pressure):
         self.pressure = pressure
-    
+        if not 0 <= self.pressure <= 127:
+            raise ValueError("Out of range")
+
     # channel value is mandatory
     def as_bytes(self, channel=None):
         return bytearray([self._STATUS | (channel & self._CHANNELMASK),

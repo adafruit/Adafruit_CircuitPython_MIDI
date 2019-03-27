@@ -56,7 +56,9 @@ class PitchBendChange(MIDIMessage):
     
     def __init__(self, pitch_bend):
         self.pitch_bend = pitch_bend
-    
+        if not 0 <= self.pitch_bend <= 16383:
+            raise ValueError("Out of range")
+
     # channel value is mandatory
     def as_bytes(self, channel=None):
         return bytearray([self._STATUS | (channel & self._CHANNELMASK),

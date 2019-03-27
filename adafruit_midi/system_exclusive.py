@@ -64,7 +64,7 @@ class SystemExclusive(MIDIMessage):
                 + self.manufacturer_id
                 + self.data
                 + bytearray([self._ENDSTATUS]))
-                        
+
     @classmethod
     def from_bytes(cls, databytes):
         # -1 on second arg is to avoid the _ENDSTATUS which is passed

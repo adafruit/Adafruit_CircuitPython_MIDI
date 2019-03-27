@@ -56,7 +56,9 @@ class ProgramChange(MIDIMessage):
     
     def __init__(self, patch):
         self.patch = patch
-    
+        if not 0 <= self.patch <= 127:
+            raise ValueError("Out of range")
+
     # channel value is mandatory
     def as_bytes(self, channel=None):
         return bytearray([self._STATUS | (channel & self._CHANNELMASK),
