@@ -87,6 +87,29 @@ def MIDI_mocked_both_loopback(in_c, out_c):
                            out_channel=out_c, in_channel=in_c)
     return m
 
+def MIDI_mocked_receive(in_c, data, read_sizes):
+    usb_data = bytearray(data)
+    chunks = read_sizes
+    chunk_idx = 0
+    
+    def read(length):
+        nonlocal usb_data, chunks, chunk_idx
+        if chunk_idx < len(chunks):
+            poppedbytes = usb_data[0:chunks[chunk_idx]]
+            usb_data = usb_data[len(poppedbytes):]
+            chunk_idx += 1
+            return bytes(poppedbytes)
+        else:
+            return bytes()
+    
+    mockedPortIn = Mock()
+    mockedPortIn.read = read
+
+    m = adafruit_midi.MIDI(midi_out=None, midi_in=mockedPortIn,
+                           out_channel=in_c, in_channel=in_c)
+    return m
+
+
 class Test_MIDI(unittest.TestCase):
     def test_goodmididatasmall(self):
         self.assertEqual(TODO, TODO)
@@ -98,8 +121,47 @@ class Test_MIDI(unittest.TestCase):
         self.assertEqual(TODO, TODO)
 
     def test_somegood_somemissing_databytes(self):
-        m = MIDI_mocked_both_loopback(8, 8)
-        self.assertEqual(TODO, TODO)
+        c = 8
+        raw_data = (NoteOn("C5", 0x7f,).as_bytes(channel=c)
+                    + bytearray([0xe8, 0x72, 0x40]
+                    + [0xe8, 0x6d ]  # Missing last data byte
+                    + [0xe8, 0x5, 0x41 ])
+                    + NoteOn("D5", 0x7f).as_bytes(channel=c))
+        m = MIDI_mocked_receive(c, raw_data, [3 + 3 + 2 + 3 + 3])
+
+        (msg1, channel1) = m.read_in_port()
+        self.assertIsInstance(msg1, NoteOn)
+        self.assertEqual(msg1.note, 72)
+        self.assertEqual(msg1.velocity, 0x7f)
+        self.assertEqual(channel1, c)
+
+        (msg2, channel2) = m.read_in_port()
+        self.assertIsInstance(msg2, PitchBendChange)
+        self.assertEqual(msg2.pitch_bend, 8306)
+        self.assertEqual(channel2, c)
+
+        # The current implementation will read status bytes for data
+        # In most cases it would be a faster recovery with fewer messages
+        # lost if status byte wasn't consumed and parsing restart from that
+        (msg3, channel3) = m.read_in_port()
+        self.assertIsInstance(msg3, adafruit_midi.midi_message.MIDIBadEvent)
+        self.assertEqual(msg3.data, bytearray([0x6d, 0xe8]))
+        self.assertEqual(channel3, c)
+
+        #(msg4, channel4) = m.read_in_port()
+        #self.assertIsInstance(msg4, PitchBendChange)
+        #self.assertEqual(msg4.pitch_bend, 72)
+        #self.assertEqual(channel4, c)
+
+        (msg5, channel5) = m.read_in_port()
+        self.assertIsInstance(msg5, NoteOn)
+        self.assertEqual(msg5.note, 74)
+        self.assertEqual(msg5.velocity, 0x7f)
+        self.assertEqual(channel5, c)
+
+        (msg6, channel6) = m.read_in_port()
+        self.assertIsNone(msg6)
+        self.assertIsNone(channel6)
 
     def test_smallsysex_between_notes(self):
         m = MIDI_mocked_both_loopback(3, 3)
@@ -235,6 +297,6 @@ class Test_MIDI_send_receive_loop(unittest.TestCase):
     def test_do_something_that_collects_sent_data_then_parses_it(self):
         self.assertEqual(TODO, TODO)
 
-        
+
 if __name__ == '__main__':
     unittest.main(verbosity=verbose)
