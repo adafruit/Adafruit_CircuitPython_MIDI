@@ -66,6 +66,27 @@ import adafruit_midi
 
 ### TODO - re work these when running status is implemented
 
+# For loopback/echo tests
+def MIDI_mocked_both_loopback(in_c, out_c):
+    usb_data = bytearray()
+    def write(buffer, length):
+        nonlocal usb_data
+        usb_data.extend(buffer[0:length])
+        
+    def read(length):
+        nonlocal usb_data
+        poppedbytes = usb_data[0:length]
+        usb_data = usb_data[len(poppedbytes):]
+        return bytes(poppedbytes)
+    
+    mockedPortIn = Mock()
+    mockedPortIn.read = read
+    mockedPortOut = Mock()
+    mockedPortOut.write = write
+    m = adafruit_midi.MIDI(midi_out=mockedPortOut, midi_in=mockedPortIn,
+                           out_channel=out_c, in_channel=in_c)
+    return m
+
 class Test_MIDI(unittest.TestCase):
     def test_goodmididatasmall(self):
         self.assertEqual(TODO, TODO)
@@ -76,27 +97,12 @@ class Test_MIDI(unittest.TestCase):
     def test_gooddatarunningstatus(self):  ### comment this out as it wont work
         self.assertEqual(TODO, TODO)
 
-    def test_somegoodsomemissingdatabytes(self):
+    def test_somegood_somemissing_databytes(self):
+        m = MIDI_mocked_both_loopback(8, 8)
         self.assertEqual(TODO, TODO)
 
     def test_smallsysex_between_notes(self):
-        usb_data = bytearray()
-        def write(buffer, length):
-            nonlocal usb_data
-            usb_data.extend(buffer[0:length])
-            
-        def read(length):
-            nonlocal usb_data
-            poppedbytes = usb_data[0:length]
-            usb_data = usb_data[len(poppedbytes):]
-            return bytes(poppedbytes)
-        
-        mockedPortIn = Mock()
-        mockedPortIn.read = read
-        mockedPortOut = Mock()
-        mockedPortOut.write = write
-        m = adafruit_midi.MIDI(midi_out=mockedPortOut, midi_in=mockedPortIn,
-                               out_channel=3, in_channel=3)
+        m = MIDI_mocked_both_loopback(3, 3)
 
         m.send([NoteOn("C4", 0x7f),
                 SystemExclusive([0x1f], [1, 2, 3, 4, 5, 6, 7, 8]),
