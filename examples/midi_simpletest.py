@@ -6,8 +6,8 @@ midi = adafruit_midi.MIDI(out_channel=0)
 
 print("Midi test")
 
-print("Default output channel:", midi.out_channel)
-print("Listening on input channel:", midi.in_channel)
+print("Default output channel:", midi.out_channel + 1)
+print("Listening on input channel:", midi.in_channel + 1)
 
 while True:
     midi.note_on(44, 120)

@@ -7,8 +7,8 @@ midi = adafruit_midi.MIDI(in_channel=0)
 
 print("Midi test II")
 
-print("Input channel:", midi.in_channel)
-print("Listening on input channel:", midi.in_channel)
+print("Input channel:", midi.in_channel + 1 )
+print("Listening on input channel:", midi.in_channel + 1)
 
 # play with the pause to simulate code doing other stuff
 # in the loop
