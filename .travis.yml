@@ -3,6 +3,8 @@
 # See https://github.com/adafruit/circuitpython-build-tools for detailed setup
 # instructions.
 
+# CUSTOMISED to run tests
+#
 dist: xenial
 language: python
 python:
@@ -42,7 +44,9 @@ install:
   - pip install --force-reinstall pylint==1.9.2
 
 script:
-  - pylint adafruit_midi.py
+  - ([[ -d "tests" ]] && py.test)
+  - pylint adafruit_midi/*.py
+  - ([[ -d "tests" ]] && pylint --disable=missing-docstring,invalid-name,bad-whitespace tests/*.py)
   - ([[ ! -d "examples" ]] || pylint --disable=missing-docstring,invalid-name,bad-whitespace examples/*.py)
   - circuitpython-build-bundles --filename_prefix adafruit-circuitpython-midi --library_location .
   - cd docs && sphinx-build -E -W -b html . _build/html && cd ..
