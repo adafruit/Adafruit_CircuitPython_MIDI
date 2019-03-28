@@ -94,14 +94,18 @@ def MIDI_mocked_receive(in_c, data, read_sizes):
     
     def read(length):
         nonlocal usb_data, chunks, chunk_idx
-        if chunk_idx < len(chunks):
-            poppedbytes = usb_data[0:chunks[chunk_idx]]
+        if length != 0 and chunk_idx < len(chunks):
+            # min() to ensure we only read what's asked for and present
+            poppedbytes = usb_data[0:min(length, chunks[chunk_idx])]
             usb_data = usb_data[len(poppedbytes):]
-            chunk_idx += 1
+            if length >= chunks[chunk_idx]:
+                chunk_idx += 1
+            else:
+                chunks[chunk_idx] -= length
             return bytes(poppedbytes)
         else:
             return bytes()
-    
+
     mockedPortIn = Mock()
     mockedPortIn.read = read
 
@@ -192,9 +196,52 @@ class Test_MIDI(unittest.TestCase):
         self.assertIsNone(msg4)
         self.assertIsNone(channel4)
 
-    def test_largerthanbuffersysex(self):
-        self.assertEqual(TODO, TODO)
+    def test_larger_than_buffer_sysex(self):
+        c = 0
+        monster_data_len = 500
+        raw_data = (NoteOn("C5", 0x7f,).as_bytes(channel=c)
+                    + SystemExclusive([0x02],
+                                      [d & 0x7f for d in range(monster_data_len)]).as_bytes(channel=c)
+                    + NoteOn("D5", 0x7f).as_bytes(channel=c))
+        m = MIDI_mocked_receive(c, raw_data, [len(raw_data)])
+        buffer_len = m._in_buf_size
+        
+        self.assertTrue(monster_data_len > buffer_len,
+                        "checking our SysEx truly is a monster")
+        
+        (msg1, channel1) = m.read_in_port()
+        self.assertIsInstance(msg1, NoteOn)
+        self.assertEqual(msg1.note, 72)
+        self.assertEqual(msg1.velocity, 0x7f)
+        self.assertEqual(channel1, c)
 
+        # (Ab)using python's rounding down for negative division
+        for n in range(-(-(1 + 1 + monster_data_len + 1) // buffer_len) - 1):
+            (msg2, channel2) = m.read_in_port()
+            self.assertIsNone(msg2)
+            self.assertIsNone(channel2)
+
+        # The current implementation will read SysEx end status byte
+        # and report it as an unknown
+        (msg3, channel3) = m.read_in_port()
+        self.assertIsInstance(msg3, adafruit_midi.midi_message.MIDIUnknownEvent)
+        self.assertEqual(msg3.status, 0xf7)
+        self.assertIsNone(channel3)
+
+        #(msg4, channel4) = m.read_in_port()
+        #self.assertIsInstance(msg4, PitchBendChange)
+        #self.assertEqual(msg4.pitch_bend, 72)
+        #self.assertEqual(channel4, c)
+
+        (msg5, channel5) = m.read_in_port()
+        self.assertIsInstance(msg5, NoteOn)
+        self.assertEqual(msg5.note, 74)
+        self.assertEqual(msg5.velocity, 0x7f)
+        self.assertEqual(channel5, c)
+
+        (msg6, channel6) = m.read_in_port()
+        self.assertIsNone(msg6)
+        self.assertIsNone(channel6)
 
 class Test_MIDI_send(unittest.TestCase):
     def test_send_basic_single(self):
@@ -266,7 +313,7 @@ class Test_MIDI_send(unittest.TestCase):
         self.assertEqual(mockedPortOut.write.mock_calls[next],
                          call(b'\x92\x48\x7f', 3))
         next += 1
-        
+
     def test_send_basic_sequences(self):
         #def printit(buffer, len):
         #    print(buffer[0:len])

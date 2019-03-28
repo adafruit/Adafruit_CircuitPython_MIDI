@@ -80,7 +80,7 @@ def note_parser(note):
             raise ValueError("Bad note format")
         noteidx = ord(note[0].upper()) - 65  # 65 os ord('A')
         if not 0 <= noteidx <= 6:
-           raise ValueError("Bad note")
+            raise ValueError("Bad note")
         sharpen = 0
         if note[1] == '#':
             sharpen = 1
@@ -176,6 +176,7 @@ class MIDIMessage:
                 if sm[0] == masked_status:
                     known_message = True
                     # Check there's enough left to parse a complete message
+                    # this value can be changed later for a var. length msgs
                     complete_message = len(midibytes) - msgstartidx >= msgclass._LENGTH
                     if complete_message:
                         if msgclass._CHANNELMASK is not None:
@@ -196,12 +197,18 @@ class MIDIMessage:
                                 else:
                                     msgendidxplusone += 1
                             if terminated_message or bad_termination:
-                                msgendidxplusone += 1                            
+                                msgendidxplusone += 1
+                            if not terminated_message:
+                                complete_message = False
                         else:
                             msgendidxplusone = msgstartidx + msgclass._LENGTH
 
-                        if not bad_termination and channel_match_orNA:
-                            msg = msgclass.from_bytes(midibytes[msgstartidx+1:msgendidxplusone])
+                        if complete_message and not bad_termination and channel_match_orNA:
+                            try:
+                                msg = msgclass.from_bytes(midibytes[msgstartidx+1:msgendidxplusone])
+                            except(ValueError, TypeError) as e:
+                                msg = MIDIBadEvent(midibytes[msgstartidx+1:msgendidxplusone], e)                               
+
                     break  # for
 
             # break out of while loop for a complete message on good channel
@@ -241,9 +248,16 @@ class MIDIMessage:
         return cls()
 
 
-# DO NOT try to register this message
+# DO NOT try to register these messages
 class MIDIUnknownEvent(MIDIMessage):
     _LENGTH = -1
 
     def __init__(self, status):
         self.status = status
+
+class MIDIBadEvent(MIDIMessage):
+    _LENGTH = -1
+
+    def __init__(self, data, exception):
+        self.data = bytearray(data)
+        self.exception_text = repr(exception)
