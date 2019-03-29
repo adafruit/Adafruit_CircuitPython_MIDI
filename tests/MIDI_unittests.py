@@ -121,9 +121,18 @@ class Test_MIDI(unittest.TestCase):
     def test_goodmididatasmall(self):
         self.assertEqual(TODO, TODO)
 
-    def test_gooddatarunningstatus(self):  ### comment this out as it wont work
-        self.assertEqual(TODO, TODO)
+    # See https://github.com/adafruit/Adafruit_CircuitPython_MIDI/issues/8
+    def test_running_status_when_implemented(self):
+        c = 8
+        raw_data = (NoteOn("C5", 0x7f,).as_bytes(channel=c)
+                    + bytearray([0xe8, 0x72, 0x40]
+                    +                 [0x6d, 0x40]  
+                    +                 [0x05, 0x41])
+                    + NoteOn("D5", 0x7f).as_bytes(channel=c))
+        m = MIDI_mocked_receive(c, raw_data, [3 + 3 + 2 + 3 + 3])
 
+        #self.assertEqual(TOFINISH, WHENIMPLEMENTED)
+        
     def test_somegood_somemissing_databytes(self):
         c = 8
         raw_data = (NoteOn("C5", 0x7f,).as_bytes(channel=c)
