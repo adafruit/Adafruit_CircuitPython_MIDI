@@ -115,11 +115,76 @@ def MIDI_mocked_receive(in_c, data, read_sizes):
 
 
 class Test_MIDI(unittest.TestCase):
-    def test_goodmididatasmall(self):
-        self.assertEqual(TODO, TODO)
+    def test_captured_data_one_byte_reads(self):
+        c = 0
+        # From an M-Audio AXIOM controller
+        raw_data = bytearray([0x90, 0x3e, 0x5f]
+                             + [ 0xd0, 0x10]
+                             + [ 0x90, 0x40, 0x66 ]
+                             + [ 0xb0, 0x1, 0x08 ]
+                             + [ 0x90, 0x41, 0x74 ]
+                             + [ 0xe0, 0x03, 0x40 ])
+        m = MIDI_mocked_receive(c, raw_data, [1] * len(raw_data))
 
-    def test_goodmididatasmall(self):
-        self.assertEqual(TODO, TODO)
+        for read in range(100): 
+            (msg, channel) = m.read_in_port()
+            if msg is not None:
+                break           
+        self.assertIsInstance(msg, NoteOn)
+        self.assertEqual(msg.note, 0x3e)
+        self.assertEqual(msg.velocity, 0x5f)
+        self.assertEqual(channel, c)
+        
+        # for loops currently absorb any Nones but could
+        # be set to read precisely the expected number...
+        for read in range(100): 
+            (msg, channel) = m.read_in_port()
+            if msg is not None:
+                break      
+        self.assertIsInstance(msg, ChannelPressure)
+        self.assertEqual(msg.pressure, 0x10)
+        self.assertEqual(channel, c)
+
+        for read in range(100): 
+            (msg, channel) = m.read_in_port()
+            if msg is not None:
+                break               
+        self.assertIsInstance(msg, NoteOn)
+        self.assertEqual(msg.note, 0x40)
+        self.assertEqual(msg.velocity, 0x66)
+        self.assertEqual(channel, c)
+        
+        for read in range(100): 
+            (msg, channel) = m.read_in_port()
+            if msg is not None:
+                break
+        self.assertIsInstance(msg, ControlChange)
+        self.assertEqual(msg.control, 0x01)
+        self.assertEqual(msg.value, 0x08)
+        self.assertEqual(channel, c)                
+                
+        for read in range(100): 
+            (msg, channel) = m.read_in_port()
+            if msg is not None:
+                break
+        self.assertIsInstance(msg, NoteOn)
+        self.assertEqual(msg.note, 0x41)
+        self.assertEqual(msg.velocity, 0x74)
+        self.assertEqual(channel, c)
+        
+        for read in range(100): 
+            (msg, channel) = m.read_in_port()
+            if msg is not None:
+                break
+        self.assertIsInstance(msg, PitchBendChange)
+        self.assertEqual(msg.pitch_bend, 8195)
+        self.assertEqual(channel, c)
+        
+        for read in range(100): 
+            (msg, channel) = m.read_in_port()
+            self.assertIsNone(msg)
+            self.assertIsNone(channel)
+        
 
     # See https://github.com/adafruit/Adafruit_CircuitPython_MIDI/issues/8
     def test_running_status_when_implemented(self):
@@ -348,10 +413,6 @@ class Test_MIDI_send(unittest.TestCase):
                          call(b'\x9b\x6c\x51\x9b\x70\x52\x9b\x73\x53', 9),
                          "The implementation writes in one go, single 9 byte write expected")
         next += 1
-
-class Test_MIDI_send_receive_loop(unittest.TestCase):
-    def test_do_something_that_collects_sent_data_then_parses_it(self):
-        self.assertEqual(TODO, TODO)
 
 
 if __name__ == '__main__':
