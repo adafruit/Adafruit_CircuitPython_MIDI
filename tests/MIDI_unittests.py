@@ -101,7 +101,7 @@ def MIDI_mocked_receive(in_c, data, read_sizes):
             if length >= chunks[chunk_idx]:
                 chunk_idx += 1
             else:
-                chunks[chunk_idx] -= length
+                chunks[chunk_idx] -= len(poppedbytes)
             return bytes(poppedbytes)
         else:
             return bytes()
