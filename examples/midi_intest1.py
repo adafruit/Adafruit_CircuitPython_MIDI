@@ -7,6 +7,7 @@ midi = adafruit_midi.MIDI(in_channel=0)
 
 print("Midi test II")
 
+# Convert channel numbers at the presentation layer to the ones musicians use
 print("Input channel:", midi.in_channel + 1 )
 print("Listening on input channel:", midi.in_channel + 1)
 
