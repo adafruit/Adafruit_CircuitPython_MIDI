@@ -50,10 +50,6 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 
-# TODO - implement running status
-# some good tips at end of http://midi.teragonaudio.com/tech/midispec/run.htm
-# only applies to voice category
-
 class MIDI:
     """MIDI helper class."""
 
@@ -62,8 +58,8 @@ class MIDI:
     PITCH_BEND = 0xE0
     CONTROL_CHANGE = 0xB0
 
-    def __init__(self, midi_in=usb_midi.ports[0], midi_out=usb_midi.ports[1], *, in_channel=None,
-                 out_channel=0, debug=False, in_buf_size=30):
+    def __init__(self, midi_in=usb_midi.ports[0], midi_out=usb_midi.ports[1], *,
+                 in_channel=None, out_channel=0, debug=False, in_buf_size=30):
         self._midi_in = midi_in
         self._midi_out = midi_out
         self.in_channel = in_channel
@@ -141,9 +137,8 @@ class MIDI:
     def send(self, msg, channel=None):
         """Sends a MIDI message.
 
-        :param MIDIMessage msg: The midi message.
-        TODO - finish this and work out how to do types that differ, e.g. msg vs [msg]
-             - do i want a return on this?
+        :param msg: Either a MIDIMessage object or a sequence (list) of MIDIMessage objects.
+        :param int channel: Channel number, if not set the ``out_channel`` will be used.
 
         """
         if channel is None:
