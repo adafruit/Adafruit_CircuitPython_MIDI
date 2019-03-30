@@ -106,7 +106,7 @@ class MIDI:
     def receive(self):
         """Read messages from MIDI port, store them in internal read buffer, then parse that data
         and return the first MIDI message (event).
-        
+
         Returns (MIDIMessage object, channel) or (None, None) for nothing.
         """
         ### could check _midi_in is an object OR correct object OR correct interface here?
@@ -120,7 +120,7 @@ class MIDI:
                 self._in_buf.extend(bytes_in)
                 del bytes_in
 
-        (msg, start, endplusone, skipped, channel) = MIDIMessage.from_message_bytes(self._in_buf, self._in_channel)
+        (msg, endplusone, skipped, channel) = MIDIMessage.from_message_bytes(self._in_buf, self._in_channel)
         if endplusone != 0:
             # This is not particularly efficient as it's copying most of bytearray
             # and deleting old one

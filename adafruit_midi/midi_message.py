@@ -134,18 +134,17 @@ class MIDIMessage:
         """Create an appropriate object of the correct class for the
         first message found in some MIDI bytes.
 
-        Returns (messageobject, start, endplusone, skipped, channel)
+        Returns (messageobject, endplusone, skipped, channel)
         or for no messages, partial messages or messages for other channels
-        (None, start, endplusone, skipped, None).
+        (None, endplusone, skipped, None).
         """
 
         msg = None
-        startidx = 0
         endidx = len(midibytes) - 1
         skipped = 0
         preamble = True
         
-        msgstartidx = startidx
+        msgstartidx = 0
         msgendidxplusone = 0
         while True:
             # Look for a status byte
@@ -159,7 +158,7 @@ class MIDIMessage:
 
             # Either no message or a partial one
             if msgstartidx > endidx:
-                return (None, startidx, endidx + 1, skipped, None)
+                return (None, endidx + 1, skipped, None)
 
             status = midibytes[msgstartidx]
             known_message = False
@@ -227,9 +226,9 @@ class MIDIMessage:
                 break
 
         if msg is not None:
-            return (msg, startidx, msgendidxplusone, skipped, channel)
+            return (msg, msgendidxplusone, skipped, channel)
         else:
-            return (None, startidx, msgendidxplusone, skipped, None)
+            return (None, msgendidxplusone, skipped, None)
 
     # channel value present to keep interface uniform but unused
     def as_bytes(self, channel=None):
