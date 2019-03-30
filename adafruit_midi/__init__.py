@@ -103,7 +103,6 @@ class MIDI:
             raise RuntimeError("Invalid output channel")
         self._out_channel = channel
 
-    ### TODO - consider naming here and channel selection and omni mode
     def receive(self):
         """Read messages from MIDI port, store them in internal read buffer, then parse that data
         and return the first MIDI message (event).
@@ -120,9 +119,7 @@ class MIDI:
                     print("Receiving: ", [hex(i) for i in bytes_in])
                 self._in_buf.extend(bytes_in)
                 del bytes_in
-      
-        ### TODO need to ensure code skips past unknown data/messages in buffer
-        ### aftertouch from Axiom 25 causes 6 in the buffer!!
+
         (msg, start, endplusone, skipped, channel) = MIDIMessage.from_message_bytes(self._in_buf, self._in_channel)
         if endplusone != 0:
             # This is not particularly efficient as it's copying most of bytearray

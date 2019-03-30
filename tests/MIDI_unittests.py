@@ -165,7 +165,26 @@ class Test_MIDI(unittest.TestCase):
             (msg, channel) = m.receive()
             self.assertIsNone(msg)
             self.assertIsNone(channel)
-        
+
+    def test_unknown_before_NoteOn(self):
+        c = 0
+        # From an M-Audio AXIOM controller
+        raw_data = (bytearray([0b11110011, 0x10]  # Song Select (not yet implemented)
+                              + [ 0b11110011, 0x20]
+                              + [ 0b11110100 ]
+                              + [ 0b11110101 ])
+                              + NoteOn("C5", 0x7f).as_bytes(channel=c))
+        m = MIDI_mocked_receive(c, raw_data, [2, 2, 1, 1, 3])
+
+        for read in range(4): 
+            (msg, channel) = m.receive()
+            self.assertIsInstance(msg, adafruit_midi.midi_message.MIDIUnknownEvent)
+
+        (msg, channel) = m.receive()
+        self.assertIsInstance(msg, NoteOn)
+        self.assertEqual(msg.note, 0x48)
+        self.assertEqual(msg.velocity, 0x7f)
+        self.assertEqual(channel, c)
 
     # See https://github.com/adafruit/Adafruit_CircuitPython_MIDI/issues/8
     def test_running_status_when_implemented(self):
