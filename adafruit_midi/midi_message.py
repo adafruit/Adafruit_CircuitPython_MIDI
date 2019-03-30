@@ -45,7 +45,8 @@ Implementation Notes
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
-
+# This is a special channel value outside of wire protocol range used to
+# represent all of the sixteen channels
 ALL_CHANNELS = -1
 
 # From C3

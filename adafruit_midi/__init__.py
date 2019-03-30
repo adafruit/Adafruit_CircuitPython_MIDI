@@ -44,7 +44,7 @@ Implementation Notes
 
 import usb_midi
 
-from .midi_message import MIDIMessage
+from .midi_message import MIDIMessage, ALL_CHANNELS
 
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
@@ -80,12 +80,13 @@ class MIDI:
         Default is None."""
         return self._in_channel
 
+    # pylint: disable=attribute-defined-outside-init
     @in_channel.setter
     def in_channel(self, channel):
         if channel is None or (isinstance(channel, int) and 0 <= channel <= 15):
             self._in_channel = channel
         elif isinstance(channel, str) and channel == "ALL":
-            self._in_channel = MIDIMessage.ALL_CHANNELS
+            self._in_channel = ALL_CHANNELS
         elif isinstance(channel, tuple) and all(0 <= c <= 15 for c in channel):
             self._in_channel = channel
         else:
@@ -97,6 +98,7 @@ class MIDI:
         ``out_channel(3)`` will send to MIDI channel 4. Default is 0."""
         return self._out_channel
 
+    # pylint: disable=attribute-defined-outside-init
     @out_channel.setter
     def out_channel(self, channel):
         if not 0 <= channel <= 15:
@@ -114,20 +116,21 @@ class MIDI:
         # the input port
         if len(self._in_buf) < self._in_buf_size:
             bytes_in = self._midi_in.read(self._in_buf_size - len(self._in_buf))
-            if len(bytes_in) > 0:
+            if bytes_in:
                 if self._debug:
                     print("Receiving: ", [hex(i) for i in bytes_in])
                 self._in_buf.extend(bytes_in)
                 del bytes_in
 
-        (msg, endplusone, skipped, channel) = MIDIMessage.from_message_bytes(self._in_buf, self._in_channel)
+        (msg, endplusone,
+         skipped, channel) = MIDIMessage.from_message_bytes(self._in_buf, self._in_channel)
         if endplusone != 0:
             # This is not particularly efficient as it's copying most of bytearray
             # and deleting old one
             self._in_buf = self._in_buf[endplusone:]
 
         self._skipped_bytes += skipped
-            
+
         # msg could still be None at this point, e.g. in middle of monster SysEx
         return (msg, channel)
 
@@ -146,9 +149,9 @@ class MIDI:
             data = bytearray()
             for each_msg in msg:
                 data.extend(each_msg.as_bytes(channel=channel))
-                
+
         self._send(data, len(data))
-        
+
     def note_on(self, note, vel, channel=None):
         """Sends a MIDI Note On message.
 
