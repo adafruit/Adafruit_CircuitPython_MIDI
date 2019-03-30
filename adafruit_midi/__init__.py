@@ -78,7 +78,10 @@ class MIDI:
     @property
     def in_channel(self):
         """The incoming MIDI channel. Must be 0-15. Correlates to MIDI channels 1-16, e.g.
-        ``in_channel(3)`` will listen on MIDI channel 4. Default is 0."""
+        ``in_channel(3)`` will listen on MIDI channel 4.
+        Can also listen on multiple channels, e.g. ``in_channel((0,1,2))``
+        will listen on MIDI channels 1-3 or ``in_channel("ALL")`` for every channel.
+        Default is None."""
         return self._in_channel
 
     @in_channel.setter
