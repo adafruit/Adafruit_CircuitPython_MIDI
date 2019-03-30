@@ -25,12 +25,16 @@ from unittest.mock import Mock, MagicMock
 
 
 import os
-verbose = int(os.getenv('TESTVERBOSE', 2))
+verbose = int(os.getenv('TESTVERBOSE', '2'))
 
 # adafruit_midi has an import usb_midi
 import sys
 sys.modules['usb_midi'] = MagicMock()
 
+# Borrowing the dhlalbert/tannewt technique from adafruit/Adafruit_CircuitPython_Motor
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Import before messages - opposite to other test file
 import adafruit_midi
 
 # Full monty
@@ -306,29 +310,29 @@ class Test_MIDIMessage_NoteOn_constructor(unittest.TestCase):
         self.assertEqual(object3.velocity, 0)
 
     def test_NoteOn_constructor_valueerror1(self):
-        with self.assertRaises(ValueError):
-            object1 = NoteOn(60, 0x80)
+        with self.assertRaises(ValueError):            
+            NoteOn(60, 0x80)  # pylint is happier if return value not stored
     
     def test_NoteOn_constructor_valueerror2(self):    
         with self.assertRaises(ValueError):
-            object2 = NoteOn(-1, 0x7f)
+            NoteOn(-1, 0x7f)
     
     def test_NoteOn_constructor_valueerror3(self):
         with self.assertRaises(ValueError):
-            object3 = NoteOn(128, 0x7f)
+            NoteOn(128, 0x7f)
 
     def test_NoteOn_constructor_upperrange1(self):
-        object = NoteOn("G9", 0x7f)
-        self.assertEqual(object.note, 127)
-        self.assertEqual(object.velocity, 0x7f)
+        object1 = NoteOn("G9", 0x7f)
+        self.assertEqual(object1.note, 127)
+        self.assertEqual(object1.velocity, 0x7f)
         
     def test_NoteOn_constructor_upperrange2(self):    
         with self.assertRaises(ValueError):
-            object = NoteOn("G#9", 0x7f)  # just above max note
+            NoteOn("G#9", 0x7f)  # just above max note
             
     def test_NoteOn_constructor_bogusstring(self):
         with self.assertRaises(ValueError):
-            object = NoteOn("CC4", 0x7f)
+            NoteOn("CC4", 0x7f)
 
 
 class Test_MIDIMessage_NoteOff_constructor(unittest.TestCase):
@@ -348,28 +352,28 @@ class Test_MIDIMessage_NoteOff_constructor(unittest.TestCase):
 
     def test_NoteOff_constructor_valueerror1(self):
         with self.assertRaises(ValueError):
-            object1 = NoteOff(60, 0x80)
+            NoteOff(60, 0x80)
     
     def test_NoteOff_constructor_valueerror2(self):    
         with self.assertRaises(ValueError):
-            object2 = NoteOff(-1, 0x7f)
+            NoteOff(-1, 0x7f)
     
     def test_NoteOff_constructor_valueerror3(self):
         with self.assertRaises(ValueError):
-            object3 = NoteOff(128, 0x7f)
+            NoteOff(128, 0x7f)
 
     def test_NoteOff_constructor_upperrange1(self):
-        object = NoteOff("G9", 0x7f)
-        self.assertEqual(object.note, 127)
-        self.assertEqual(object.velocity, 0x7f)
+        object1 = NoteOff("G9", 0x7f)
+        self.assertEqual(object1.note, 127)
+        self.assertEqual(object1.velocity, 0x7f)
         
     def test_NoteOff_constructor_upperrange2(self):    
         with self.assertRaises(ValueError):
-            object = NoteOff("G#9", 0x7f)  # just above max note
+            NoteOff("G#9", 0x7f)  # just above max note
             
     def test_NoteOff_constructor_bogusstring(self):
         with self.assertRaises(ValueError):
-            object = NoteOff("CC4", 0x7f)
+            NoteOff("CC4", 0x7f)
             
             
             
