@@ -51,8 +51,9 @@ ALL_CHANNELS = -1
 
 # From C3
 # Semitones    A   B   C   D   E   F   G
-note_offset = [9, 11, 12, 14, 16, 17, 19]
+NOTE_OFFSET = [9, 11, 12, 14, 16, 17, 19]
 
+# pylint: disable=no-else-return
 def channel_filter(channel, channel_spec):
     """
     Utility function to return True iff the given channel matches channel_spec.
@@ -67,11 +68,11 @@ def channel_filter(channel, channel_spec):
     else:
         raise ValueError("Incorrect type for channel_spec")
 
-  
+
 def note_parser(note):
     """If note is a string then it will be parsed and converted to a MIDI note (key) number, e.g.
     "C4" will return 60, "C#4" will return 61. If note is not a string it will simply be returned.
-    
+
     :param note: Either 0-127 int or a str representing the note, e.g. "C#4"
     """
     midi_note = note
@@ -88,11 +89,11 @@ def note_parser(note):
             sharpen = -1
         # int may throw exception here
         midi_note = (int(note[1 + abs(sharpen):]) * 12
-                     + note_offset[noteidx]
+                     + NOTE_OFFSET[noteidx]
                      + sharpen)
 
     return midi_note
-        
+
 
 class MIDIMessage:
     """
@@ -111,7 +112,7 @@ class MIDIMessage:
     _LENGTH = None
     _CHANNELMASK = None
     _ENDSTATUS = None
-    
+
     # Each element is ((status, mask), class)
     # order is more specific masks first
     _statusandmask_to_class = []
@@ -129,7 +130,7 @@ class MIDIMessage:
 
         MIDIMessage._statusandmask_to_class.insert(insert_idx,
                                                    ((cls._STATUS, cls._STATUSMASK), cls))
-                        
+
     @classmethod
     def from_message_bytes(cls, midibytes, channel_in):
         """Create an appropriate object of the correct class for the
@@ -144,17 +145,17 @@ class MIDIMessage:
         endidx = len(midibytes) - 1
         skipped = 0
         preamble = True
-        
+
         msgstartidx = 0
         msgendidxplusone = 0
         while True:
             # Look for a status byte
             # Second rule of the MIDI club is status bytes have MSB set
-            while msgstartidx <= endidx and not (midibytes[msgstartidx] & 0x80):
+            while msgstartidx <= endidx and not midibytes[msgstartidx] & 0x80:
                 msgstartidx += 1
                 if preamble:
                     skipped += 1
-            
+
             preamble = False
 
             # Either no message or a partial one
@@ -164,12 +165,12 @@ class MIDIMessage:
             status = midibytes[msgstartidx]
             known_message = False
             complete_message = False
-            channel_match_orNA = True
+            channel_match_orna = True
             channel = None
             # Rummage through our list looking for a status match
-            for sm, msgclass in MIDIMessage._statusandmask_to_class:
-                masked_status = status & sm[1]
-                if sm[0] == masked_status:
+            for status_mask, msgclass in MIDIMessage._statusandmask_to_class:
+                masked_status = status & status_mask[1]
+                if status_mask[0] == masked_status:
                     known_message = True
                     # Check there's enough left to parse a complete message
                     # this value can be changed later for a var. length msgs
@@ -177,7 +178,7 @@ class MIDIMessage:
                     if complete_message:
                         if msgclass._CHANNELMASK is not None:
                             channel = status & msgclass._CHANNELMASK
-                            channel_match_orNA = channel_filter(channel, channel_in)
+                            channel_match_orna = channel_filter(channel, channel_in)
 
                         bad_termination = False
                         if msgclass._LENGTH < 0:  # indicator of variable length message
@@ -199,11 +200,11 @@ class MIDIMessage:
                         else:
                             msgendidxplusone = msgstartidx + msgclass._LENGTH
 
-                        if complete_message and not bad_termination and channel_match_orNA:
+                        if complete_message and not bad_termination and channel_match_orna:
                             try:
                                 msg = msgclass.from_bytes(midibytes[msgstartidx+1:msgendidxplusone])
-                            except(ValueError, TypeError) as e:
-                                msg = MIDIBadEvent(midibytes[msgstartidx+1:msgendidxplusone], e)                               
+                            except(ValueError, TypeError) as ex:
+                                msg = MIDIBadEvent(midibytes[msgstartidx+1:msgendidxplusone], ex)
 
                     break  # for
 
@@ -211,7 +212,7 @@ class MIDIMessage:
             # or we have one we do not know about
             if known_message:
                 if complete_message:
-                    if channel_match_orNA:
+                    if channel_match_orna:
                         break
                     else:
                         msgstartidx = msgendidxplusone
@@ -232,11 +233,14 @@ class MIDIMessage:
             return (None, msgendidxplusone, skipped, None)
 
     # channel value present to keep interface uniform but unused
+    # pylint: disable=unused-argument
     def as_bytes(self, channel=None):
         """A default method for constructing wire messages with no data.
         Returns a (mutable) bytearray with just status code in."""
         return bytearray([self._STATUS])
 
+    # databytes value present to keep interface uniform but unused
+    # pylint: disable=unused-argument
     @classmethod
     def from_bytes(cls, databytes):
         """A default method for constructing message objects with no data.
@@ -246,6 +250,13 @@ class MIDIMessage:
 
 # DO NOT try to register these messages
 class MIDIUnknownEvent(MIDIMessage):
+    """An unknown MIDI message.
+
+    :param int status: The MIDI status number.
+
+    This can either occur because there is no class representing the message
+    or because it is not imported.
+    """
     _LENGTH = -1
 
     def __init__(self, status):
@@ -253,6 +264,13 @@ class MIDIUnknownEvent(MIDIMessage):
 
 
 class MIDIBadEvent(MIDIMessage):
+    """A bad MIDI message, one that could not be parsed/constructed.
+
+    :param list data: The MIDI status number.
+    :param Exception exception: The exception used to store the repr() text representation.
+
+    This could be due to status bytes appearing where data bytes are expected.
+    """
     _LENGTH = -1
 
     def __init__(self, data, exception):
