@@ -228,10 +228,10 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(object2.velocity, 0x00)
         
     def test_SystemExclusive_NoteOn(self):
-        data = bytes([0xf0, 0x42, 0x01, 0x02, 0x03, 0x04, 0xf7,  0x90, 0x30, 0x32])
-        ichannel = 0
+        data = bytes([0xf0, 0x42, 0x01, 0x02, 0x03, 0x04, 0xf7,  0x90 | 14, 0x30, 0x60])
+        ichannel = 14
 
-        (msg, startidx, msgendidxplusone, skipped, channel) =  adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
+        (msg, startidx, msgendidxplusone, skipped, channel) = adafruit_midi.MIDIMessage.from_message_bytes(data, ichannel)
 
         self.assertIsInstance(msg, SystemExclusive)
         self.assertEqual(msg.manufacturer_id, bytes([0x42]))   # Korg
@@ -241,7 +241,16 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(skipped, 0,
                          "If SystemExclusive class is imported then this must be 0")
         self.assertIsNone(channel)
-        ### TODO - call  MIDIMessage.from_message_bytes for second part of buffer       
+
+        (msg, startidx, msgendidxplusone, skipped, channel) = adafruit_midi.MIDIMessage.from_message_bytes(data[msgendidxplusone:], ichannel)
+        
+        self.assertIsInstance(msg, NoteOn)
+        self.assertEqual(msg.note, 48)
+        self.assertEqual(msg.velocity, 0x60)
+        self.assertEqual(startidx, 0)
+        self.assertEqual(msgendidxplusone, 3)
+        self.assertEqual(skipped, 0)
+        self.assertEqual(channel, 14)
 
     def test_SystemExclusive_NoteOn_premalterminatedsysex(self):
         data = bytes([0xf0, 0x42, 0x01, 0x02, 0x03, 0x04, 0xf0,  0x90, 0x30, 0x32])
