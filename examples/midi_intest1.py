@@ -17,7 +17,7 @@ pauses = [0] * 10 + [.010] * 10 + [0.100] * 10 + [1.0] * 10
 
 while True:
     for pause in pauses:
-        msg = midi.read_in_port()
+        msg = midi.receive()
         if msg is not None:
             print(time.monotonic(), msg)
         if pause:

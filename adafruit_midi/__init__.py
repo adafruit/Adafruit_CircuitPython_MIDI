@@ -105,7 +105,7 @@ class MIDI:
         self._out_channel = channel
 
     ### TODO - consider naming here and channel selection and omni mode
-    def read_in_port(self):
+    def receive(self):
         """Read messages from MIDI port, store them in internal read buffer, then parse that data
         and return the first MIDI message (event).
         
@@ -139,6 +139,8 @@ class MIDI:
         """Sends a MIDI message.
 
         :param MIDIMessage msg: The midi message.
+        TODO - finish this and work out how to do types that differ, e.g. msg vs [msg]
+             - do i want a return on this?
 
         """
         if channel is None:

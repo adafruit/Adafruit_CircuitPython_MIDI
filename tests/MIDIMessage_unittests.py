@@ -25,7 +25,7 @@ from unittest.mock import Mock, MagicMock
 
 
 import os
-verbose = int(os.getenv('TESTVERBOSE',2))
+verbose = int(os.getenv('TESTVERBOSE', 2))
 
 # adafruit_midi has an import usb_midi
 import sys

@@ -127,7 +127,7 @@ class Test_MIDI(unittest.TestCase):
         m = MIDI_mocked_receive(c, raw_data, [1] * len(raw_data))
 
         for read in range(100): 
-            (msg, channel) = m.read_in_port()
+            (msg, channel) = m.receive()
             if msg is not None:
                 break           
         self.assertIsInstance(msg, NoteOn)
@@ -138,7 +138,7 @@ class Test_MIDI(unittest.TestCase):
         # for loops currently absorb any Nones but could
         # be set to read precisely the expected number...
         for read in range(100): 
-            (msg, channel) = m.read_in_port()
+            (msg, channel) = m.receive()
             if msg is not None:
                 break      
         self.assertIsInstance(msg, ChannelPressure)
@@ -146,7 +146,7 @@ class Test_MIDI(unittest.TestCase):
         self.assertEqual(channel, c)
 
         for read in range(100): 
-            (msg, channel) = m.read_in_port()
+            (msg, channel) = m.receive()
             if msg is not None:
                 break               
         self.assertIsInstance(msg, NoteOn)
@@ -155,7 +155,7 @@ class Test_MIDI(unittest.TestCase):
         self.assertEqual(channel, c)
         
         for read in range(100): 
-            (msg, channel) = m.read_in_port()
+            (msg, channel) = m.receive()
             if msg is not None:
                 break
         self.assertIsInstance(msg, ControlChange)
@@ -164,7 +164,7 @@ class Test_MIDI(unittest.TestCase):
         self.assertEqual(channel, c)                
                 
         for read in range(100): 
-            (msg, channel) = m.read_in_port()
+            (msg, channel) = m.receive()
             if msg is not None:
                 break
         self.assertIsInstance(msg, NoteOn)
@@ -173,7 +173,7 @@ class Test_MIDI(unittest.TestCase):
         self.assertEqual(channel, c)
         
         for read in range(100): 
-            (msg, channel) = m.read_in_port()
+            (msg, channel) = m.receive()
             if msg is not None:
                 break
         self.assertIsInstance(msg, PitchBendChange)
@@ -181,7 +181,7 @@ class Test_MIDI(unittest.TestCase):
         self.assertEqual(channel, c)
         
         for read in range(100): 
-            (msg, channel) = m.read_in_port()
+            (msg, channel) = m.receive()
             self.assertIsNone(msg)
             self.assertIsNone(channel)
         
@@ -207,13 +207,13 @@ class Test_MIDI(unittest.TestCase):
                     + NoteOn("D5", 0x7f).as_bytes(channel=c))
         m = MIDI_mocked_receive(c, raw_data, [3 + 3 + 2 + 3 + 3])
 
-        (msg1, channel1) = m.read_in_port()
+        (msg1, channel1) = m.receive()
         self.assertIsInstance(msg1, NoteOn)
         self.assertEqual(msg1.note, 72)
         self.assertEqual(msg1.velocity, 0x7f)
         self.assertEqual(channel1, c)
 
-        (msg2, channel2) = m.read_in_port()
+        (msg2, channel2) = m.receive()
         self.assertIsInstance(msg2, PitchBendChange)
         self.assertEqual(msg2.pitch_bend, 8306)
         self.assertEqual(channel2, c)
@@ -221,23 +221,23 @@ class Test_MIDI(unittest.TestCase):
         # The current implementation will read status bytes for data
         # In most cases it would be a faster recovery with fewer messages
         # lost if status byte wasn't consumed and parsing restart from that
-        (msg3, channel3) = m.read_in_port()
+        (msg3, channel3) = m.receive()
         self.assertIsInstance(msg3, adafruit_midi.midi_message.MIDIBadEvent)
         self.assertEqual(msg3.data, bytearray([0x6d, 0xe8]))
         self.assertEqual(channel3, c)
 
-        #(msg4, channel4) = m.read_in_port()
+        #(msg4, channel4) = m.receive()
         #self.assertIsInstance(msg4, PitchBendChange)
         #self.assertEqual(msg4.pitch_bend, 72)
         #self.assertEqual(channel4, c)
 
-        (msg5, channel5) = m.read_in_port()
+        (msg5, channel5) = m.receive()
         self.assertIsInstance(msg5, NoteOn)
         self.assertEqual(msg5.note, 74)
         self.assertEqual(msg5.velocity, 0x7f)
         self.assertEqual(channel5, c)
 
-        (msg6, channel6) = m.read_in_port()
+        (msg6, channel6) = m.receive()
         self.assertIsNone(msg6)
         self.assertIsNone(channel6)
 
@@ -248,25 +248,25 @@ class Test_MIDI(unittest.TestCase):
                 SystemExclusive([0x1f], [1, 2, 3, 4, 5, 6, 7, 8]),
                 NoteOff(60, 0x28)])
 
-        (msg1, channel1) = m.read_in_port()
+        (msg1, channel1) = m.receive()
         self.assertIsInstance(msg1, NoteOn)
         self.assertEqual(msg1.note, 60)
         self.assertEqual(msg1.velocity, 0x7f)
         self.assertEqual(channel1, 3)
         
-        (msg2, channel2) = m.read_in_port()
+        (msg2, channel2) = m.receive()
         self.assertIsInstance(msg2, SystemExclusive)
         self.assertEqual(msg2.manufacturer_id, bytearray([0x1f]))
         self.assertEqual(msg2.data, bytearray([1, 2, 3, 4, 5, 6, 7, 8]))
         self.assertEqual(channel2, None)  # SysEx does not have a channel
         
-        (msg3, channel3) = m.read_in_port()
+        (msg3, channel3) = m.receive()
         self.assertIsInstance(msg3, NoteOff)
         self.assertEqual(msg3.note, 60)
         self.assertEqual(msg3.velocity, 0x28)
         self.assertEqual(channel3, 3)
         
-        (msg4, channel4) = m.read_in_port()
+        (msg4, channel4) = m.receive()
         self.assertIsNone(msg4)
         self.assertIsNone(channel4)
 
@@ -283,7 +283,7 @@ class Test_MIDI(unittest.TestCase):
         self.assertTrue(monster_data_len > buffer_len,
                         "checking our SysEx truly is a monster")
         
-        (msg1, channel1) = m.read_in_port()
+        (msg1, channel1) = m.receive()
         self.assertIsInstance(msg1, NoteOn)
         self.assertEqual(msg1.note, 72)
         self.assertEqual(msg1.velocity, 0x7f)
@@ -291,29 +291,29 @@ class Test_MIDI(unittest.TestCase):
 
         # (Ab)using python's rounding down for negative division
         for n in range(-(-(1 + 1 + monster_data_len + 1) // buffer_len) - 1):
-            (msg2, channel2) = m.read_in_port()
+            (msg2, channel2) = m.receive()
             self.assertIsNone(msg2)
             self.assertIsNone(channel2)
 
         # The current implementation will read SysEx end status byte
         # and report it as an unknown
-        (msg3, channel3) = m.read_in_port()
+        (msg3, channel3) = m.receive()
         self.assertIsInstance(msg3, adafruit_midi.midi_message.MIDIUnknownEvent)
         self.assertEqual(msg3.status, 0xf7)
         self.assertIsNone(channel3)
 
-        #(msg4, channel4) = m.read_in_port()
+        #(msg4, channel4) = m.receive()
         #self.assertIsInstance(msg4, PitchBendChange)
         #self.assertEqual(msg4.pitch_bend, 72)
         #self.assertEqual(channel4, c)
 
-        (msg5, channel5) = m.read_in_port()
+        (msg5, channel5) = m.receive()
         self.assertIsInstance(msg5, NoteOn)
         self.assertEqual(msg5.note, 74)
         self.assertEqual(msg5.velocity, 0x7f)
         self.assertEqual(channel5, c)
 
-        (msg6, channel6) = m.read_in_port()
+        (msg6, channel6) = m.receive()
         self.assertIsNone(msg6)
         self.assertIsNone(channel6)
 
