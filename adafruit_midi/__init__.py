@@ -196,10 +196,9 @@ class MIDI:
             raise RuntimeError("Argument 1 value %d invalid" % arg1)
         if not 0 <= arg2 <= 0x7F:
             raise RuntimeError("Argument 2 value %d invalid" % arg2)
-        ### TODO - change this to use is operator and range check or mask it
-        if not channel:
+        if channel is None:
             channel = self._out_channel
-        self._outbuf[0] = (cmd & 0xF0) | channel
+        self._outbuf[0] = (cmd & 0xF0) | (channel & 0x0f)
         self._outbuf[1] = arg1
         self._outbuf[2] = arg2
         self._send(self._outbuf, 3)
