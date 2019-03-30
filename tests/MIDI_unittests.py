@@ -23,6 +23,7 @@
 import unittest
 from unittest.mock import Mock, MagicMock, call
 
+import random
 import os
 verbose = int(os.getenv('TESTVERBOSE',2))
 
@@ -43,28 +44,8 @@ from adafruit_midi.stop                    import Stop
 from adafruit_midi.system_exclusive        import SystemExclusive
 from adafruit_midi.timing_clock            import TimingClock
 
-
 import adafruit_midi
 
-# Need to test this with a stream of data
-# including example below
-# small sysex
-# too large sysex
-
-### To incorporate into tests
-# This is using running status in a rather sporadic manner
-# Acutally this now looks more like losing bytes due to being
-# overwhelmed by "big" bursts of data
-#
-# Receiving:  ['0xe0', '0x67', '0x40']
-# Receiving:  ['0xe0', '0x72', '0x40']
-# Receiving:  ['0x6d', '0x40', '0xe0']
-# Receiving:  ['0x5', '0x41', '0xe0']
-# Receiving:  ['0x17', '0x41', '0xe0']
-# Receiving:  ['0x35', '0x41', '0xe0']
-# Receiving:  ['0x40', '0x41', '0xe0']
-
-### TODO - re work these when running status is implemented
 
 # For loopback/echo tests
 def MIDI_mocked_both_loopback(in_c, out_c):
@@ -413,6 +394,22 @@ class Test_MIDI_send(unittest.TestCase):
                          call(b'\x9b\x6c\x51\x9b\x70\x52\x9b\x73\x53', 9),
                          "The implementation writes in one go, single 9 byte write expected")
         next += 1
+
+    def test_termination_with_random_data(self):
+        """Test with a random stream of bytes to ensure that the parsing code
+        termates and returns, i.e. does not go into any infinite loops.
+        """
+        c = 0
+        random.seed(303808)
+        raw_data = bytearray([random.randint(0, 255) for i in range(50000)])
+        m = MIDI_mocked_receive(c, raw_data, [len(raw_data)])
+
+        noinfiniteloops = False
+        for read in range(len(raw_data)): 
+            (msg, channel) = m.receive()  # not interested in return values
+
+        noinfiniteloops = True  # interested in getting to here
+        self.assertTrue(noinfiniteloops)
 
 
 if __name__ == '__main__':

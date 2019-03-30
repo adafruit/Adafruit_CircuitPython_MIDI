@@ -46,21 +46,6 @@ from adafruit_midi.stop                    import Stop
 from adafruit_midi.system_exclusive        import SystemExclusive
 from adafruit_midi.timing_clock            import TimingClock
 
-### To incorporate into tests
-# This is using running status in a rather sporadic manner
-# Acutally this now looks more like losing bytes due to being
-# overwhelmed by "big" bursts of data
-#
-# Receiving:  ['0xe0', '0x67', '0x40']
-# Receiving:  ['0xe0', '0x72', '0x40']
-# Receiving:  ['0x6d', '0x40', '0xe0']
-# Receiving:  ['0x5', '0x41', '0xe0']
-# Receiving:  ['0x17', '0x41', '0xe0']
-# Receiving:  ['0x35', '0x41', '0xe0']
-# Receiving:  ['0x40', '0x41', '0xe0']
-
-### TODO - re work these when running status is implemented
-### TODO - consider fuzzing this to check it always terminates
 
 class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
     def test_NoteOn_basic(self):
