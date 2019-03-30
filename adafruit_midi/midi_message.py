@@ -66,13 +66,12 @@ def channel_filter(channel, channel_spec):
     else:
         raise ValueError("Incorrect type for channel_spec")
 
-# TODO - proper parameter typing and look up how this is done when different types are accepted     
+  
 def note_parser(note):
-    """
-    If note is a string then it will be parsed and converted to a MIDI note (key) number, e.g.
+    """If note is a string then it will be parsed and converted to a MIDI note (key) number, e.g.
     "C4" will return 60, "C#4" will return 61. If note is not a string it will simply be returned.
     
-    Applies a range check to both string and integer inputs.
+    :param note: Either 0-127 int or a str representing the note, e.g. "C#4"
     """
     midi_note = note
     if isinstance(note, str):
@@ -93,16 +92,17 @@ def note_parser(note):
 
     return midi_note
         
-# TODO TBD: can relocate this class later to a separate file if recommended
+
 class MIDIMessage:
     """
     A MIDI message:
-      - Status - extracted from Status byte with channel replaced by 0s
-                (high bit always set)
-      - Channel - extracted from Status where present (0-15)
-      - 0 or more Data Byte(s) - high bit always not set for data
-      - _LENGTH is the fixed message length including status or -1 for variable length
-      - _ENDSTATUS is the EOM status byte if relevant
+      - _STATUS - extracted from Status byte with channel replaced by 0s
+                  (high bit always set).
+      - _STATUSMASK - mask used to compared a status byte with _STATUS value
+      - _LENGTH - length for a fixed size message including status
+                  or -1 for variable length.
+      - _CHANNELMASK - mask use to apply a (wire protocol) channel number.
+      - _ENDSTATUS - the EOM status byte, only set for variable length.
     This is an abstract class.
     """
     _STATUS = None
@@ -129,8 +129,6 @@ class MIDIMessage:
         MIDIMessage._statusandmask_to_class.insert(insert_idx,
                                                    ((cls._STATUS, cls._STATUSMASK), cls))
                         
-    # TODO - this needs a lot of test cases to prove it actually works
-    # TODO - finish SysEx implementation and find something that sends one
     @classmethod
     def from_message_bytes(cls, midibytes, channel_in):
         """Create an appropriate object of the correct class for the
@@ -161,8 +159,6 @@ class MIDIMessage:
 
             # Either no message or a partial one
             if msgstartidx > endidx:
-                ### TODO review exactly when buffer should be discarded
-                ### must not discard the first half of a message
                 return (None, startidx, endidx + 1, skipped, None)
 
             status = midibytes[msgstartidx]
@@ -254,6 +250,7 @@ class MIDIUnknownEvent(MIDIMessage):
 
     def __init__(self, status):
         self.status = status
+
 
 class MIDIBadEvent(MIDIMessage):
     _LENGTH = -1
