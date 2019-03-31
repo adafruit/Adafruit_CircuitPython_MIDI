@@ -49,6 +49,13 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 
 class ControlChange(MIDIMessage):
+    """Control Change MIDI message.
+
+    :param int control: The control number, 0-127.
+    :param int value: The 7bit value of the control, 0-127.
+
+    """
+
     _STATUS = 0xb0
     _STATUSMASK = 0xf0
     LENGTH = 3

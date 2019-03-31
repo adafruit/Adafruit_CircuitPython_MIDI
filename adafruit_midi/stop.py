@@ -49,6 +49,8 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 
 class Stop(MIDIMessage):
+    """Stop MIDI message.
+    """
     _STATUS = 0xfc
     _STATUSMASK = 0xff
     LENGTH = 1

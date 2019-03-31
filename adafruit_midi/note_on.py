@@ -49,6 +49,12 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 
 class NoteOn(MIDIMessage):
+    """Note On Change MIDI message.
+
+    :param note: The note (key) number either as an int (0-127) or a str which is parsed, e.g. "C4" (middle C) is 60, "A4" is 69.
+    :param int velocity: The strike velocity, 0-127, 0 is equivalent to a Note Off.
+    """
+
     _STATUS = 0x90
     _STATUSMASK = 0xf0
     LENGTH = 3

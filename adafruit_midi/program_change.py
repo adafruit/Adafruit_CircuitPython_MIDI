@@ -49,6 +49,11 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 
 class ProgramChange(MIDIMessage):
+    """Program Change MIDI message.
+
+    :param int patch: The new program/patch number to use, 0-127.
+    """
+
     _STATUS = 0xc0
     _STATUSMASK = 0xf0
     LENGTH = 2

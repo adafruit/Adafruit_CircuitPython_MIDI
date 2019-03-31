@@ -42,20 +42,26 @@ Implementation Notes
 
 """
 
-from .midi_message import MIDIMessage
+from .midi_message import MIDIMessage, note_parser
 
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 
 class PolyphonicKeyPressure(MIDIMessage):
+    """Polyphonic Key Pressure MIDI message.
+
+    :param note: The note (key) number either as an int (0-127) or a str which is parsed, e.g. "C4" (middle C) is 60, "A4" is 69.
+    :param int pressure: The pressure, 0-127.
+    """
+
     _STATUS = 0xa0
     _STATUSMASK = 0xf0
     LENGTH = 3
     CHANNELMASK = 0x0f
     
     def __init__(self, note, pressure):
-        self.note = note
+        self.note = note_parser(note)
         self.pressure = pressure
         if not 0 <= self.note <= 127 or not 0 <= self.pressure <= 127:
             raise ValueError("Out of range")

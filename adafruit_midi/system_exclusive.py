@@ -49,6 +49,12 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 
 class SystemExclusive(MIDIMessage):
+    """System Exclusive MIDI message.
+
+    :param list manufacturer_id: The single byte or three byte manufacturer's id as a list or bytearray of numbers between 0-127.
+    :param list data: The 7bit data as a list or bytearray of numbers between 0-127.
+    """
+
     _STATUS = 0xf0
     _STATUSMASK = 0xff
     LENGTH = -1

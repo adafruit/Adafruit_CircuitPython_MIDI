@@ -49,6 +49,11 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 
 class ChannelPressure(MIDIMessage):
+    """Channel Pressure MIDI message.
+
+    :param int pressure: The pressure, 0-127.
+    """
+
     _STATUS = 0xd0
     _STATUSMASK = 0xf0
     LENGTH = 2

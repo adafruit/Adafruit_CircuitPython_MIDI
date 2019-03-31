@@ -50,6 +50,13 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 # Good to have this registered first as it occurs frequently when present
 class TimingClock(MIDIMessage):
+    """Timing Clock MIDI message.
+
+       This occurs 24 times per quarter note when synchronization is in use.
+       If this is not needed it's best to avoid this sending this high frequency
+       message to a CircuitPython device to reduce the amount of message processing.
+    """
+
     _STATUS = 0xf8
     _STATUSMASK = 0xff
     LENGTH = 1
