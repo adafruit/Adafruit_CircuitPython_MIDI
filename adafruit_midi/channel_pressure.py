@@ -62,7 +62,7 @@ class ChannelPressure(MIDIMessage):
     def __init__(self, pressure):
         self.pressure = pressure
         if not 0 <= self.pressure <= 127:
-            raise ValueError("Out of range")
+            raise self._EX_VALUEERROR_OOR
 
     # channel value is mandatory
     def as_bytes(self, channel=None):

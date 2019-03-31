@@ -113,6 +113,9 @@ class MIDIMessage:
     CHANNELMASK = None
     ENDSTATUS = None
 
+    # Commonly used exceptions to save memory
+    _EX_VALUEERROR_OOR = ValueError("Out of range")
+
     # Each element is ((status, mask), class)
     # order is more specific masks first
     _statusandmask_to_class = []
