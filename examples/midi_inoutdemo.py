@@ -1,13 +1,12 @@
 # midi_inoutdemo - demonstrates receiving and sending MIDI events
 
-import time
-import random
-
 import adafruit_midi
 
 # TimingClock is worth importing first if present as it
 # will make parsing more efficient for this high frequency event
 # Only importing what is used will save a little bit of memory
+
+# pylint: disable=unused-import
 from adafruit_midi.timing_clock            import TimingClock 
 from adafruit_midi.channel_pressure        import ChannelPressure
 from adafruit_midi.control_change          import ControlChange
@@ -22,7 +21,7 @@ from adafruit_midi.system_exclusive        import SystemExclusive
 
 from adafruit_midi.midi_message import MIDIUnknownEvent
 
-midi = adafruit_midi.MIDI(in_channel=(1,2,3), out_channel=0)
+midi = adafruit_midi.MIDI(in_channel=(1, 2, 3), out_channel=0)
 
 print("Midi Demo in and out")
 
@@ -44,8 +43,8 @@ while True:
                 if 0 <= new_note <= 127:
                     midi.send(NoteOn(new_note, msg_in.velocity))
 
-        elif (isinstance(msg_in, NoteOff) or
-               isinstance(msg_in, NoteOn) and msg_in.velocity == 0):
+        elif (isinstance(msg_in, NoteOff)
+              or isinstance(msg_in, NoteOn) and msg_in.velocity == 0):
             for offset in major_chord:
                 new_note = msg_in.note + offset
                 if 0 <= new_note <= 127:
