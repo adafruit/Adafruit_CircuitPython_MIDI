@@ -51,7 +51,8 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 class PolyphonicKeyPressure(MIDIMessage):
     """Polyphonic Key Pressure MIDI message.
 
-    :param note: The note (key) number either as an int (0-127) or a str which is parsed, e.g. "C4" (middle C) is 60, "A4" is 69.
+    :param note: The note (key) number either as an ``int`` (0-127) or a
+        ``str`` which is parsed, e.g. "C4" (middle C) is 60, "A4" is 69.
     :param int pressure: The pressure, 0-127.
     """
 
@@ -59,7 +60,7 @@ class PolyphonicKeyPressure(MIDIMessage):
     _STATUSMASK = 0xf0
     LENGTH = 3
     CHANNELMASK = 0x0f
-    
+
     def __init__(self, note, pressure):
         self.note = note_parser(note)
         self.pressure = pressure
@@ -73,6 +74,6 @@ class PolyphonicKeyPressure(MIDIMessage):
 
     @classmethod
     def from_bytes(cls, databytes):
-        return cls(databytes[0], databytes[1])  
+        return cls(databytes[0], databytes[1])
 
 PolyphonicKeyPressure.register_message_type()

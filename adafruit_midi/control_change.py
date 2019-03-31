@@ -60,7 +60,7 @@ class ControlChange(MIDIMessage):
     _STATUSMASK = 0xf0
     LENGTH = 3
     CHANNELMASK = 0x0f
-    
+
     def __init__(self, control, value):
         self.control = control
         self.value = value
@@ -74,6 +74,6 @@ class ControlChange(MIDIMessage):
 
     @classmethod
     def from_bytes(cls, databytes):
-        return cls(databytes[0], databytes[1])  
-        
+        return cls(databytes[0], databytes[1])
+
 ControlChange.register_message_type()

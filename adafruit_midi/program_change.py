@@ -58,7 +58,7 @@ class ProgramChange(MIDIMessage):
     _STATUSMASK = 0xf0
     LENGTH = 2
     CHANNELMASK = 0x0f
-    
+
     def __init__(self, patch):
         self.patch = patch
         if not 0 <= self.patch <= 127:
@@ -68,9 +68,9 @@ class ProgramChange(MIDIMessage):
     def as_bytes(self, channel=None):
         return bytearray([self._STATUS | (channel & self.CHANNELMASK),
                           self.patch])
-    
+
     @classmethod
     def from_bytes(cls, databytes):
-        return cls(databytes[0])  
+        return cls(databytes[0])
 
 ProgramChange.register_message_type()

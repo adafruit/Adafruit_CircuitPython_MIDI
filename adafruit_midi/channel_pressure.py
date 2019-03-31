@@ -68,9 +68,9 @@ class ChannelPressure(MIDIMessage):
     def as_bytes(self, channel=None):
         return bytearray([self._STATUS | (channel & self.CHANNELMASK),
                           self.pressure])
-                         
+
     @classmethod
     def from_bytes(cls, databytes):
-        return cls(databytes[0])  
+        return cls(databytes[0])
 
 ChannelPressure.register_message_type()

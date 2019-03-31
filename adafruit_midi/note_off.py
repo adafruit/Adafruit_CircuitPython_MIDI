@@ -51,7 +51,8 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 class NoteOff(MIDIMessage):
     """Note Off Change MIDI message.
 
-    :param note: The note (key) number either as an int (0-127) or a str which is parsed, e.g. "C4" (middle C) is 60, "A4" is 69.
+    :param note: The note (key) number either as an ``int`` (0-127) or a
+        ``str`` which is parsed, e.g. "C4" (middle C) is 60, "A4" is 69.
     :param int velocity: The release velocity, 0-127.
 
     """
@@ -60,7 +61,7 @@ class NoteOff(MIDIMessage):
     _STATUSMASK = 0xf0
     LENGTH = 3
     CHANNELMASK = 0x0f
-    
+
     def __init__(self, note, velocity):
         self.note = note_parser(note)
         self.velocity = velocity
@@ -70,10 +71,10 @@ class NoteOff(MIDIMessage):
     # channel value is mandatory
     def as_bytes(self, channel=None):
         return bytearray([self._STATUS | (channel & self.CHANNELMASK),
-                         self.note, self.velocity])
+                          self.note, self.velocity])
 
     @classmethod
     def from_bytes(cls, databytes):
-        return cls(databytes[0], databytes[1])  
+        return cls(databytes[0], databytes[1])
 
 NoteOff.register_message_type()
