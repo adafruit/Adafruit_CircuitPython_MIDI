@@ -52,7 +52,7 @@ class PitchBendChange(MIDIMessage):
     _STATUS = 0xe0
     _STATUSMASK = 0xf0
     LENGTH = 3
-    _CHANNELMASK = 0x0f
+    CHANNELMASK = 0x0f
     
     def __init__(self, pitch_bend):
         self.pitch_bend = pitch_bend
@@ -61,7 +61,7 @@ class PitchBendChange(MIDIMessage):
 
     # channel value is mandatory
     def as_bytes(self, channel=None):
-        return bytearray([self._STATUS | (channel & self._CHANNELMASK),
+        return bytearray([self._STATUS | (channel & self.CHANNELMASK),
                           self.pitch_bend & 0x7f,
                           (self.pitch_bend >> 7) & 0x7f])
                          

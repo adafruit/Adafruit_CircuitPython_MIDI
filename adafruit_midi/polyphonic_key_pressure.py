@@ -52,7 +52,7 @@ class PolyphonicKeyPressure(MIDIMessage):
     _STATUS = 0xa0
     _STATUSMASK = 0xf0
     LENGTH = 3
-    _CHANNELMASK = 0x0f
+    CHANNELMASK = 0x0f
     
     def __init__(self, note, pressure):
         self.note = note
@@ -62,7 +62,7 @@ class PolyphonicKeyPressure(MIDIMessage):
 
     # channel value is mandatory
     def as_bytes(self, channel=None):
-        return bytearray([self._STATUS | (channel & self._CHANNELMASK),
+        return bytearray([self._STATUS | (channel & self.CHANNELMASK),
                           self.note, self.pressure])
 
     @classmethod

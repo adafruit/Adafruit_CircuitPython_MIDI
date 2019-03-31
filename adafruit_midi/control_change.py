@@ -52,7 +52,7 @@ class ControlChange(MIDIMessage):
     _STATUS = 0xb0
     _STATUSMASK = 0xf0
     LENGTH = 3
-    _CHANNELMASK = 0x0f
+    CHANNELMASK = 0x0f
     
     def __init__(self, control, value):
         self.control = control
@@ -62,7 +62,7 @@ class ControlChange(MIDIMessage):
 
     # channel value is mandatory
     def as_bytes(self, channel=None):
-        return bytearray([self._STATUS | (channel & self._CHANNELMASK),
+        return bytearray([self._STATUS | (channel & self.CHANNELMASK),
                           self.control, self.value])
 
     @classmethod

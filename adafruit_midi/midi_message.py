@@ -103,14 +103,14 @@ class MIDIMessage:
       - _STATUSMASK - mask used to compared a status byte with _STATUS value
       - LENGTH - length for a fixed size message including status
                   or -1 for variable length.
-      - _CHANNELMASK - mask use to apply a (wire protocol) channel number.
+      - CHANNELMASK - mask use to apply a (wire protocol) channel number.
       - ENDSTATUS - the EOM status byte, only set for variable length.
     This is an abstract class.
     """
     _STATUS = None
     _STATUSMASK = None
     LENGTH = None
-    _CHANNELMASK = None
+    CHANNELMASK = None
     ENDSTATUS = None
 
     # Each element is ((status, mask), class)
@@ -176,8 +176,8 @@ class MIDIMessage:
                     # this value can be changed later for a var. length msgs
                     complete_message = len(midibytes) - msgstartidx >= msgclass.LENGTH
                     if complete_message:
-                        if msgclass._CHANNELMASK is not None:
-                            channel = status & msgclass._CHANNELMASK
+                        if msgclass.CHANNELMASK is not None:
+                            channel = status & msgclass.CHANNELMASK
                             channel_match_orna = channel_filter(channel, channel_in)
 
                         bad_termination = False
