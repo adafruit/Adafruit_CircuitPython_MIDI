@@ -35,8 +35,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Adafruit MIDI Library'
-copyright = u'2019 Ladyada'
-author = u'Ladyada'
+copyright = u'2019 Ladyada & Kevin J. Walters'
+author = u'Ladyada & Kevin J. Walters'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
