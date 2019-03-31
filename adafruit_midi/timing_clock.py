@@ -52,6 +52,6 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 class TimingClock(MIDIMessage):
     _STATUS = 0xf8
     _STATUSMASK = 0xff
-    _LENGTH = 1
+    LENGTH = 1
 
 TimingClock.register_message_type()

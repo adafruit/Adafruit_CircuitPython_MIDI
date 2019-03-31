@@ -51,8 +51,8 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 class SystemExclusive(MIDIMessage):
     _STATUS = 0xf0
     _STATUSMASK = 0xff
-    _LENGTH = -1
-    _ENDSTATUS = 0xf7
+    LENGTH = -1
+    ENDSTATUS = 0xf7
 
     def __init__(self, manufacturer_id, data):
         self.manufacturer_id = bytearray(manufacturer_id)
@@ -63,11 +63,11 @@ class SystemExclusive(MIDIMessage):
         return (bytearray([self._STATUS])
                 + self.manufacturer_id
                 + self.data
-                + bytearray([self._ENDSTATUS]))
+                + bytearray([self.ENDSTATUS]))
 
     @classmethod
     def from_bytes(cls, databytes):
-        # -1 on second arg is to avoid the _ENDSTATUS which is passed
+        # -1 on second arg is to avoid the ENDSTATUS which is passed
         if databytes[0] != 0:
             return cls(databytes[0:1], databytes[1:-1])
         else:

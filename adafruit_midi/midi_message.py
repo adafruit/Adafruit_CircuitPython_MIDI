@@ -101,17 +101,17 @@ class MIDIMessage:
       - _STATUS - extracted from Status byte with channel replaced by 0s
                   (high bit always set).
       - _STATUSMASK - mask used to compared a status byte with _STATUS value
-      - _LENGTH - length for a fixed size message including status
+      - LENGTH - length for a fixed size message including status
                   or -1 for variable length.
       - _CHANNELMASK - mask use to apply a (wire protocol) channel number.
-      - _ENDSTATUS - the EOM status byte, only set for variable length.
+      - ENDSTATUS - the EOM status byte, only set for variable length.
     This is an abstract class.
     """
     _STATUS = None
     _STATUSMASK = None
-    _LENGTH = None
+    LENGTH = None
     _CHANNELMASK = None
-    _ENDSTATUS = None
+    ENDSTATUS = None
 
     # Each element is ((status, mask), class)
     # order is more specific masks first
@@ -174,19 +174,19 @@ class MIDIMessage:
                     known_message = True
                     # Check there's enough left to parse a complete message
                     # this value can be changed later for a var. length msgs
-                    complete_message = len(midibytes) - msgstartidx >= msgclass._LENGTH
+                    complete_message = len(midibytes) - msgstartidx >= msgclass.LENGTH
                     if complete_message:
                         if msgclass._CHANNELMASK is not None:
                             channel = status & msgclass._CHANNELMASK
                             channel_match_orna = channel_filter(channel, channel_in)
 
                         bad_termination = False
-                        if msgclass._LENGTH < 0:  # indicator of variable length message
+                        if msgclass.LENGTH < 0:  # indicator of variable length message
                             terminated_message = False
                             msgendidxplusone = msgstartidx + 1
                             while msgendidxplusone <= endidx:
                                 if midibytes[msgendidxplusone] & 0x80:
-                                    if midibytes[msgendidxplusone] == msgclass._ENDSTATUS:
+                                    if midibytes[msgendidxplusone] == msgclass.ENDSTATUS:
                                         terminated_message = True
                                     else:
                                         bad_termination = True
@@ -198,7 +198,7 @@ class MIDIMessage:
                             if not terminated_message:
                                 complete_message = False
                         else:
-                            msgendidxplusone = msgstartidx + msgclass._LENGTH
+                            msgendidxplusone = msgstartidx + msgclass.LENGTH
 
                         if complete_message and not bad_termination and channel_match_orna:
                             try:
@@ -257,7 +257,7 @@ class MIDIUnknownEvent(MIDIMessage):
     This can either occur because there is no class representing the message
     or because it is not imported.
     """
-    _LENGTH = -1
+    LENGTH = -1
 
     def __init__(self, status):
         self.status = status
@@ -271,7 +271,7 @@ class MIDIBadEvent(MIDIMessage):
 
     This could be due to status bytes appearing where data bytes are expected.
     """
-    _LENGTH = -1
+    LENGTH = -1
 
     def __init__(self, data, exception):
         self.data = bytearray(data)
