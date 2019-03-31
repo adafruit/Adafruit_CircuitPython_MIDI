@@ -131,6 +131,75 @@ class MIDIMessage:
         MIDIMessage._statusandmask_to_class.insert(insert_idx,
                                                    ((cls._STATUS, cls._STATUSMASK), cls))
 
+
+    # pylint: disable=too-many-arguments
+    @classmethod
+    def _search_eom_status(cls, buf, eom_status, msgstartidx, msgendidxplusone, endidx):
+        good_termination = False
+        bad_termination = False
+
+        msgendidxplusone = msgstartidx + 1
+        while msgendidxplusone <= endidx:
+            # Look for a status byte
+            # Second rule of the MIDI club is status bytes have MSB set
+            if buf[msgendidxplusone] & 0x80:
+                if buf[msgendidxplusone] == eom_status:
+                    good_termination = True
+                else:
+                    bad_termination = True
+                break
+            else:
+                msgendidxplusone += 1
+
+        if good_termination or bad_termination:
+            msgendidxplusone += 1
+
+        return (msgendidxplusone, good_termination, bad_termination)
+
+    # pylint: disable=too-many-arguments,too-many-locals
+    @classmethod
+    def _match_message_status(cls, buf, channel_in, msgstartidx, msgendidxplusone, endidx):
+        msgclass = None
+        status = buf[msgstartidx]
+        known_msg = False
+        complete_msg = False
+        bad_termination = False
+        channel_match_orna = True
+        channel = None
+
+        # Rummage through our list looking for a status match
+        for status_mask, msgclass in MIDIMessage._statusandmask_to_class:
+            masked_status = status & status_mask[1]
+            if status_mask[0] == masked_status:
+                known_msg = True
+                # Check there's enough left to parse a complete message
+                # this value can be changed later for a var. length msgs
+                complete_msg = len(buf) - msgstartidx >= msgclass.LENGTH
+                if not complete_msg:
+                    break
+
+                if msgclass.CHANNELMASK is not None:
+                    channel = status & msgclass.CHANNELMASK
+                    channel_match_orna = channel_filter(channel, channel_in)
+
+                if msgclass.LENGTH < 0:  # indicator of variable length message
+                    (msgendidxplusone,
+                     terminated_msg,
+                     bad_termination) = cls._search_eom_status(buf,
+                                                               msgclass.ENDSTATUS,
+                                                               msgstartidx,
+                                                               msgendidxplusone,
+                                                               endidx)
+                    if not terminated_msg:
+                        complete_msg = False
+                else: # fixed length message
+                    msgendidxplusone = msgstartidx + msgclass.LENGTH
+                break
+
+        return (msgclass, status,
+                known_msg, complete_msg, bad_termination,
+                channel_match_orna, channel, msgendidxplusone)
+
     @classmethod
     def from_message_bytes(cls, midibytes, channel_in):
         """Create an appropriate object of the correct class for the
@@ -140,11 +209,11 @@ class MIDIMessage:
         or for no messages, partial messages or messages for other channels
         (None, endplusone, skipped, None).
         """
-
         msg = None
         endidx = len(midibytes) - 1
         skipped = 0
         preamble = True
+        channel = None
 
         msgstartidx = 0
         msgendidxplusone = 0
@@ -155,58 +224,31 @@ class MIDIMessage:
                 msgstartidx += 1
                 if preamble:
                     skipped += 1
-
             preamble = False
 
             # Either no message or a partial one
             if msgstartidx > endidx:
                 return (None, endidx + 1, skipped, None)
 
-            status = midibytes[msgstartidx]
-            known_message = False
-            complete_message = False
-            channel_match_orna = True
-            channel = None
-            # Rummage through our list looking for a status match
-            for status_mask, msgclass in MIDIMessage._statusandmask_to_class:
-                masked_status = status & status_mask[1]
-                if status_mask[0] == masked_status:
-                    known_message = True
-                    # Check there's enough left to parse a complete message
-                    # this value can be changed later for a var. length msgs
-                    complete_message = len(midibytes) - msgstartidx >= msgclass.LENGTH
-                    if complete_message:
-                        if msgclass.CHANNELMASK is not None:
-                            channel = status & msgclass.CHANNELMASK
-                            channel_match_orna = channel_filter(channel, channel_in)
+            # Try and match the status byte found in midibytes
+            (msgclass,
+             status,
+             known_message,
+             complete_message,
+             bad_termination,
+             channel_match_orna,
+             channel,
+             msgendidxplusone) = cls._match_message_status(midibytes,
+                                                           channel_in,
+                                                           msgstartidx,
+                                                           msgendidxplusone,
+                                                           endidx)
 
-                        bad_termination = False
-                        if msgclass.LENGTH < 0:  # indicator of variable length message
-                            terminated_message = False
-                            msgendidxplusone = msgstartidx + 1
-                            while msgendidxplusone <= endidx:
-                                if midibytes[msgendidxplusone] & 0x80:
-                                    if midibytes[msgendidxplusone] == msgclass.ENDSTATUS:
-                                        terminated_message = True
-                                    else:
-                                        bad_termination = True
-                                    break
-                                else:
-                                    msgendidxplusone += 1
-                            if terminated_message or bad_termination:
-                                msgendidxplusone += 1
-                            if not terminated_message:
-                                complete_message = False
-                        else:
-                            msgendidxplusone = msgstartidx + msgclass.LENGTH
-
-                        if complete_message and not bad_termination and channel_match_orna:
-                            try:
-                                msg = msgclass.from_bytes(midibytes[msgstartidx+1:msgendidxplusone])
-                            except(ValueError, TypeError) as ex:
-                                msg = MIDIBadEvent(midibytes[msgstartidx+1:msgendidxplusone], ex)
-
-                    break  # for
+            if complete_message and not bad_termination and channel_match_orna:
+                try:
+                    msg = msgclass.from_bytes(midibytes[msgstartidx+1:msgendidxplusone])
+                except(ValueError, TypeError) as ex:
+                    msg = MIDIBadEvent(midibytes[msgstartidx+1:msgendidxplusone], ex)
 
             # break out of while loop for a complete message on good channel
             # or we have one we do not know about
@@ -214,7 +256,7 @@ class MIDIMessage:
                 if complete_message:
                     if channel_match_orna:
                         break
-                    else:
+                    else:  # advance to next message
                         msgstartidx = msgendidxplusone
                 else:
                     # Important case of a known message but one that is not
@@ -227,10 +269,7 @@ class MIDIMessage:
                 msgendidxplusone = msgstartidx + 1
                 break
 
-        if msg is not None:
-            return (msg, msgendidxplusone, skipped, channel)
-        else:
-            return (None, msgendidxplusone, skipped, None)
+        return (msg, msgendidxplusone, skipped, channel)
 
     # channel value present to keep interface uniform but unused
     # pylint: disable=unused-argument
