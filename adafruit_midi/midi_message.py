@@ -20,25 +20,22 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 """
-`adafruit_midi`
+`adafruit_midi.midi_message.MIDIMessage`
 ================================================================================
 
-A CircuitPython helper for encoding/decoding MIDI packets over a MIDI or UART connection.
+An abstract class for objects which represent MIDI messages (events).
+When individual messages are imported they register themselves with
+:func:register_message_type which makes them recognised
+by the parser, :func:from_message_bytes.
+
+Large messages like :class:SystemExclusive can only be parsed if they fit
+within the input buffer in :class:MIDI.
 
 
 * Author(s): Kevin J. Walters
 
 Implementation Notes
 --------------------
-
-**Hardware:**
-
-
-
-**Software and Dependencies:**
-
-* Adafruit CircuitPython firmware for the supported boards:
-  https://github.com/adafruit/circuitpython/releases
 
 """
 
@@ -97,15 +94,19 @@ def note_parser(note):
 
 class MIDIMessage:
     """
-    A MIDI message:
-      - _STATUS - extracted from Status byte with channel replaced by 0s
-                  (high bit always set).
-      - _STATUSMASK - mask used to compared a status byte with _STATUS value
-      - LENGTH - length for a fixed size message including status
-                  or -1 for variable length.
-      - CHANNELMASK - mask use to apply a (wire protocol) channel number.
-      - ENDSTATUS - the EOM status byte, only set for variable length.
-    This is an abstract class.
+    The parent class for MIDI messages.
+
+    Class variables:
+
+      * ``_STATUS`` - extracted from status byte with channel replaced by 0s
+        (high bit is always set by convention).
+      * ``_STATUSMASK`` - mask used to compared a status byte with ``_STATUS`` value.
+      * ``LENGTH`` - length for a fixed size message *including* status
+        or -1 for variable length.
+      * ``CHANNELMASK`` - mask used to apply a (wire protocol) channel number.
+      * ``ENDSTATUS`` - the end of message status byte, only set for variable length.
+
+    This is an *abstract* class.
     """
     _STATUS = None
     _STATUSMASK = None
@@ -146,7 +147,7 @@ class MIDIMessage:
             # Look for a status byte
             # Second rule of the MIDI club is status bytes have MSB set
             if buf[msgendidxplusone] & 0x80:
-                # pylint disable=simplifiable-if-statement  # n/a for this technique
+                # pylint disable=simplifiable-if-statement
                 if buf[msgendidxplusone] == eom_status:
                     good_termination = True
                 else:
@@ -276,18 +277,21 @@ class MIDIMessage:
         return (msg, msgendidxplusone, skipped, channel)
 
     # channel value present to keep interface uniform but unused
+    # A default method for constructing wire messages with no data.
+    # Returns a (mutable) bytearray with just the status code in.
     # pylint: disable=unused-argument
     def as_bytes(self, channel=None):
-        """A default method for constructing wire messages with no data.
-        Returns a (mutable) bytearray with just status code in."""
+        """Return the ``bytearray`` wire protocol representation of the object."""
         return bytearray([self._STATUS])
 
     # databytes value present to keep interface uniform but unused
+    # A default method for constructing message objects with no data.
+    # Returns the new object.
     # pylint: disable=unused-argument
     @classmethod
     def from_bytes(cls, databytes):
-        """A default method for constructing message objects with no data.
-           Returns the new object."""
+        """Creates an object from the byte stream of the wire protocol
+        (not including the first status byte)."""
         return cls()
 
 

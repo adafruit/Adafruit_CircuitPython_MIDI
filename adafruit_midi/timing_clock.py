@@ -20,25 +20,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 """
-`adafruit_midi`
+`adafruit_midi.timing_clock`
 ================================================================================
 
-A CircuitPython helper for encoding/decoding MIDI packets over a MIDI or UART connection.
+Timing Clock MIDI message.
 
 
 * Author(s): Kevin J. Walters
 
 Implementation Notes
 --------------------
-
-**Hardware:**
-
-
-
-**Software and Dependencies:**
-
-* Adafruit CircuitPython firmware for the supported boards:
-  https://github.com/adafruit/circuitpython/releases
 
 """
 

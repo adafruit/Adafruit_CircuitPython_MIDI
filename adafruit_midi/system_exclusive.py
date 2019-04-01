@@ -20,25 +20,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 """
-`adafruit_midi`
+`adafruit_midi.system_exclusive`
 ================================================================================
 
-A CircuitPython helper for encoding/decoding MIDI packets over a MIDI or UART connection.
+System Exclusive MIDI message.
 
 
 * Author(s): Kevin J. Walters
 
 Implementation Notes
 --------------------
-
-**Hardware:**
-
-
-
-**Software and Dependencies:**
-
-* Adafruit CircuitPython firmware for the supported boards:
-  https://github.com/adafruit/circuitpython/releases
 
 """
 
@@ -54,6 +45,8 @@ class SystemExclusive(MIDIMessage):
     :param list manufacturer_id: The single byte or three byte
         manufacturer's id as a list or bytearray of numbers between 0-127.
     :param list data: The 7bit data as a list or bytearray of numbers between 0-127.
+
+    This message can only be parsed if it fits within the input buffer in :class:MIDI.
     """
 
     _STATUS = 0xf0
