@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 """
-`adafruit_midi.midi_message.MIDIMessage`
+`adafruit_midi.midi_message`
 ================================================================================
 
 An abstract class for objects which represent MIDI messages (events).
