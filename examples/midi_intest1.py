@@ -1,5 +1,4 @@
 import time
-import random
 import adafruit_midi
 
 ### 0 is MIDI channel 1
