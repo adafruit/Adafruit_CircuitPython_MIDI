@@ -105,7 +105,8 @@ class MIDIMessage:
                   or -1 for variable length.
       - CHANNELMASK - mask use to apply a (wire protocol) channel number.
       - ENDSTATUS - the EOM status byte, only set for variable length.
-    This is an abstract class.
+
+      This is an abstract class.
     """
     _STATUS = None
     _STATUSMASK = None
@@ -146,7 +147,7 @@ class MIDIMessage:
             # Look for a status byte
             # Second rule of the MIDI club is status bytes have MSB set
             if buf[msgendidxplusone] & 0x80:
-                # pylint disable=simplifiable-if-statement  # n/a for this technique
+                # pylint disable=simplifiable-if-statement
                 if buf[msgendidxplusone] == eom_status:
                     good_termination = True
                 else:
