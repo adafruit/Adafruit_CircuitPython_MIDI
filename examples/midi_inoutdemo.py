@@ -7,7 +7,7 @@ import adafruit_midi
 # Only importing what is used will save a little bit of memory
 
 # pylint: disable=unused-import
-from adafruit_midi.timing_clock            import TimingClock 
+from adafruit_midi.timing_clock            import TimingClock
 from adafruit_midi.channel_pressure        import ChannelPressure
 from adafruit_midi.control_change          import ControlChange
 from adafruit_midi.note_off                import NoteOff
