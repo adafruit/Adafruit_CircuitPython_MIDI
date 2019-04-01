@@ -51,7 +51,24 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 
 class MIDI:
-    """MIDI helper class."""
+    """MIDI helper class.
+
+    :param midi_in: an object which implements ``read(length)``,
+        defaults to ``usb_midi.ports[0]``.
+    :param midi_out: an object which implements ``write(buffer, length)``,
+        defaults to ``usb_midi.ports[1]``.
+    :param in_channel: The input channel(s).
+        This is used by ``receive`` to filter data.
+        This can either be an ``int`` for the wire protocol channel number (0-15)
+        a tuple of ``int`` to listen for multiple channels or ``"ALL"``.
+        Defaults to None.
+    :param int out_channel: The wire protocol output channel number (0-15)
+        used by ``send`` if no channel is specified,
+        defaults to 0 (MIDI Channel 1).
+    :param int in_buf_size: Size of input buffer in bytes, default 30.
+    :param bool debug: Debug mode, default False.
+
+    """
 
     NOTE_ON = 0x90
     NOTE_OFF = 0x80
@@ -59,7 +76,7 @@ class MIDI:
     CONTROL_CHANGE = 0xB0
 
     def __init__(self, midi_in=usb_midi.ports[0], midi_out=usb_midi.ports[1], *,
-                 in_channel=None, out_channel=0, debug=False, in_buf_size=30):
+                 in_channel=None, out_channel=0, in_buf_size=30, debug=False):
         self._midi_in = midi_in
         self._midi_out = midi_out
         self.in_channel = in_channel
@@ -108,8 +125,10 @@ class MIDI:
     def receive(self):
         """Read messages from MIDI port, store them in internal read buffer, then parse that data
         and return the first MIDI message (event).
+        This maintains the blocking characteristics of the midi_in port.
 
-        Returns (MIDIMessage object, channel) or (None, None) for nothing.
+        :returns (MIDIMessage object, int channel): Returns object and channel
+           or (None, None) for nothing.
         """
         ### could check _midi_in is an object OR correct object OR correct interface here?
         # If the buffer here is not full then read as much as we can fit from
