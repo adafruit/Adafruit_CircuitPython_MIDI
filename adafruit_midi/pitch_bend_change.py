@@ -39,7 +39,7 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 
-class PitchBendChange(MIDIMessage):
+class PitchBend(MIDIMessage):
     """Pitch Bend Change MIDI message.
 
     :param int pitch_bend: A 14bit unsigned int representing the degree of
@@ -66,4 +66,4 @@ class PitchBendChange(MIDIMessage):
     def from_bytes(cls, databytes):
         return cls(databytes[1] << 7 | databytes[0])
 
-PitchBendChange.register_message_type()
+PitchBend.register_message_type()

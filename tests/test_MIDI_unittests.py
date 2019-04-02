@@ -39,7 +39,7 @@ from adafruit_midi.channel_pressure        import ChannelPressure
 from adafruit_midi.control_change          import ControlChange
 from adafruit_midi.note_off                import NoteOff
 from adafruit_midi.note_on                 import NoteOn
-from adafruit_midi.pitch_bend_change       import PitchBendChange
+from adafruit_midi.pitch_bend_change       import PitchBend
 from adafruit_midi.polyphonic_key_pressure import PolyphonicKeyPressure
 from adafruit_midi.program_change          import ProgramChange
 from adafruit_midi.start                   import Start
@@ -163,7 +163,7 @@ class Test_MIDI(unittest.TestCase):
             (msg, channel) = m.receive()
             if msg is not None:
                 break
-        self.assertIsInstance(msg, PitchBendChange)
+        self.assertIsInstance(msg, PitchBend)
         self.assertEqual(msg.pitch_bend, 8195)
         self.assertEqual(channel, c)
         
@@ -221,7 +221,7 @@ class Test_MIDI(unittest.TestCase):
         self.assertEqual(channel1, c)
 
         (msg2, channel2) = m.receive()
-        self.assertIsInstance(msg2, PitchBendChange)
+        self.assertIsInstance(msg2, PitchBend)
         self.assertEqual(msg2.pitch_bend, 8306)
         self.assertEqual(channel2, c)
 
@@ -234,7 +234,7 @@ class Test_MIDI(unittest.TestCase):
         self.assertEqual(channel3, c)
 
         #(msg4, channel4) = m.receive()
-        #self.assertIsInstance(msg4, PitchBendChange)
+        #self.assertIsInstance(msg4, PitchBend)
         #self.assertEqual(msg4.pitch_bend, 72)
         #self.assertEqual(channel4, c)
 
@@ -311,7 +311,7 @@ class Test_MIDI(unittest.TestCase):
         self.assertIsNone(channel3)
 
         #(msg4, channel4) = m.receive()
-        #self.assertIsInstance(msg4, PitchBendChange)
+        #self.assertIsInstance(msg4, PitchBend)
         #self.assertEqual(msg4.pitch_bend, 72)
         #self.assertEqual(channel4, c)
 

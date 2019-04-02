@@ -5,7 +5,7 @@ import adafruit_midi
 from adafruit_midi.control_change          import ControlChange
 from adafruit_midi.note_off                import NoteOff
 from adafruit_midi.note_on                 import NoteOn
-from adafruit_midi.pitch_bend_change       import PitchBendChange
+from adafruit_midi.pitch_bend_change       import PitchBend
 
 midi = adafruit_midi.MIDI(out_channel=0)
 
@@ -28,7 +28,7 @@ while True:
     # send message(s) interface
     midi.send(NoteOn(44, 120))
     time.sleep(0.25)
-    midi.send(PitchBendChange(random.randint(0, 16383)))
+    midi.send(PitchBend(random.randint(0, 16383)))
     time.sleep(0.25)
     midi.send([NoteOff("G#2", 120),
                ControlChange(3, 44)])
