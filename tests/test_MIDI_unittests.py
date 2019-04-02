@@ -31,7 +31,7 @@ verbose = int(os.getenv('TESTVERBOSE', '2'))
 import sys
 sys.modules['usb_midi'] = MagicMock()
 
-# Borrowing the dhlalbert/tannewt technique from adafruit/Adafruit_CircuitPython_Motor
+# Borrowing the dhalbert/tannewt technique from adafruit/Adafruit_CircuitPython_Motor
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Full monty
