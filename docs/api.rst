@@ -22,7 +22,7 @@
 .. automodule:: adafruit_midi.note_on
       :members:
 
-.. automodule:: adafruit_midi.pitch_bend_change
+.. automodule:: adafruit_midi.pitch_bend
       :members:
 
 .. automodule:: adafruit_midi.polyphonic_key_pressure

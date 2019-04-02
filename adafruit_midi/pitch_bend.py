@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 """
-`adafruit_midi.pitch_bend_change`
+`adafruit_midi.pitch_bend`
 ================================================================================
 
 Pitch Bend Change MIDI message.
