@@ -147,7 +147,7 @@ class MIDIMessage:
             # Look for a status byte
             # Second rule of the MIDI club is status bytes have MSB set
             if buf[msgendidxplusone] & 0x80:
-                # pylint disable=simplifiable-if-statement
+                # pylint: disable=simplifiable-if-statement
                 if buf[msgendidxplusone] == eom_status:
                     good_termination = True
                 else:
