@@ -46,9 +46,9 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 # represent all of the sixteen channels
 ALL_CHANNELS = -1
 
-# From C3
-# Semitones    A   B   C   D   E   F   G
-NOTE_OFFSET = [9, 11, 12, 14, 16, 17, 19]
+# From C3 - A and B are above G
+# Semitones     A   B   C   D   E   F   G
+NOTE_OFFSET = [21, 23, 12, 14, 16, 17, 19]
 
 # pylint: disable=no-else-return
 def channel_filter(channel, channel_spec):
