@@ -56,7 +56,7 @@ class ChannelPressure(MIDIMessage):
             raise self._EX_VALUEERROR_OOR
 
     # channel value is mandatory
-    def as_bytes(self, channel=None):
+    def as_bytes(self, *, channel=None):
         return bytearray([self._STATUS | (channel & self.CHANNELMASK),
                           self.pressure])
 

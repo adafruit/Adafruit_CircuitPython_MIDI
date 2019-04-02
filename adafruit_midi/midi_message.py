@@ -280,7 +280,7 @@ class MIDIMessage:
     # A default method for constructing wire messages with no data.
     # Returns a (mutable) bytearray with just the status code in.
     # pylint: disable=unused-argument
-    def as_bytes(self, channel=None):
+    def as_bytes(self, *, channel=None):
         """Return the ``bytearray`` wire protocol representation of the object."""
         return bytearray([self._STATUS])
 

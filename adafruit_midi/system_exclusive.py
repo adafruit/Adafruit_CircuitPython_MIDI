@@ -59,7 +59,7 @@ class SystemExclusive(MIDIMessage):
         self.data = bytearray(data)
 
     # channel value present to keep interface uniform but unused
-    def as_bytes(self, channel=None):
+    def as_bytes(self, *, channel=None):
         return (bytearray([self._STATUS])
                 + self.manufacturer_id
                 + self.data
