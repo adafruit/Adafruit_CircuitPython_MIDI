@@ -79,7 +79,9 @@ class MIDI:
                  in_channel=None, out_channel=0, in_buf_size=30, debug=False):
         self._midi_in = midi_in
         self._midi_out = midi_out
+        self._in_channel = in_channel  # dealing with pylint inadequacy
         self.in_channel = in_channel
+        self._out_channel = out_channel  # dealing with pylint inadequacy
         self.out_channel = out_channel
         self._debug = debug
         # This input buffer holds what has been read from midi_in
@@ -97,7 +99,6 @@ class MIDI:
         Default is None."""
         return self._in_channel
 
-    # pylint: disable=attribute-defined-outside-init
     @in_channel.setter
     def in_channel(self, channel):
         if channel is None or (isinstance(channel, int) and 0 <= channel <= 15):
@@ -115,7 +116,6 @@ class MIDI:
         ``out_channel = 3`` will send to MIDI channel 4. Default is 0 (MIDI channel 1)."""
         return self._out_channel
 
-    # pylint: disable=attribute-defined-outside-init
     @out_channel.setter
     def out_channel(self, channel):
         if not 0 <= channel <= 15:
