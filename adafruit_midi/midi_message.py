@@ -111,7 +111,7 @@ class MIDIMessage:
     _STATUS = None
     _STATUSMASK = None
     LENGTH = None
-    CHANNELMASK = None
+    CHANNELMASK = 0x0f
     ENDSTATUS = None
 
     # Commonly used exceptions to save memory
@@ -120,6 +120,24 @@ class MIDIMessage:
     # Each element is ((status, mask), class)
     # order is more specific masks first
     _statusandmask_to_class = []
+
+    def __init__(self, *, channel=None):
+        ###  TODO - can i kwargs this?????
+        self._channel = channel  # dealing with pylint inadequacy
+        self.channel = channel
+
+    @property
+    def channel(self):
+        """The channel number of the MIDI message where appropriate.
+           This is *updated* by MIDI.send() method.
+        """
+        return self._channel
+
+    @channel.setter
+    def channel(self, channel):
+        if channel is not None and not 0 <= channel <= 15:
+            raise "channel must be 0-15 or None"
+        self._channel = channel
 
     @classmethod
     def register_message_type(cls):
@@ -161,16 +179,13 @@ class MIDIMessage:
 
         return (msgendidxplusone, good_termination, bad_termination)
 
-    # pylint: disable=too-many-arguments,too-many-locals
     @classmethod
-    def _match_message_status(cls, buf, channel_in, msgstartidx, msgendidxplusone, endidx):
+    def _match_message_status(cls, buf, msgstartidx, msgendidxplusone, endidx):
         msgclass = None
         status = buf[msgstartidx]
         known_msg = False
         complete_msg = False
         bad_termination = False
-        channel_match_orna = True
-        channel = None
 
         # Rummage through our list looking for a status match
         for status_mask, msgclass in MIDIMessage._statusandmask_to_class:
@@ -182,10 +197,6 @@ class MIDIMessage:
                 complete_msg = len(buf) - msgstartidx >= msgclass.LENGTH
                 if not complete_msg:
                     break
-
-                if msgclass.CHANNELMASK is not None:
-                    channel = status & msgclass.CHANNELMASK
-                    channel_match_orna = channel_filter(channel, channel_in)
 
                 if msgclass.LENGTH < 0:  # indicator of variable length message
                     (msgendidxplusone,
@@ -203,26 +214,26 @@ class MIDIMessage:
 
         return (msgclass, status,
                 known_msg, complete_msg, bad_termination,
-                channel_match_orna, channel, msgendidxplusone)
+                msgendidxplusone)
 
+    # pylint: disable=too-many-locals,too-many-branches
     @classmethod
     def from_message_bytes(cls, midibytes, channel_in):
         """Create an appropriate object of the correct class for the
-        first message found in some MIDI bytes.
+        first message found in some MIDI bytes filtered by channel_in.
 
-        Returns (messageobject, endplusone, skipped, channel)
+        Returns (messageobject, endplusone, skipped)
         or for no messages, partial messages or messages for other channels
-        (None, endplusone, skipped, None).
+        (None, endplusone, skipped).
         """
-        msg = None
         endidx = len(midibytes) - 1
         skipped = 0
         preamble = True
-        channel = None
 
         msgstartidx = 0
         msgendidxplusone = 0
         while True:
+            msg = None
             # Look for a status byte
             # Second rule of the MIDI club is status bytes have MSB set
             while msgstartidx <= endidx and not midibytes[msgstartidx] & 0x80:
@@ -233,7 +244,7 @@ class MIDIMessage:
 
             # Either no message or a partial one
             if msgstartidx > endidx:
-                return (None, endidx + 1, skipped, None)
+                return (None, endidx + 1, skipped)
 
             # Try and match the status byte found in midibytes
             (msgclass,
@@ -241,19 +252,19 @@ class MIDIMessage:
              known_message,
              complete_message,
              bad_termination,
-             channel_match_orna,
-             channel,
              msgendidxplusone) = cls._match_message_status(midibytes,
-                                                           channel_in,
                                                            msgstartidx,
                                                            msgendidxplusone,
                                                            endidx)
-
-            if complete_message and not bad_termination and channel_match_orna:
+            channel_match_orna = True
+            if complete_message and not bad_termination:
                 try:
-                    msg = msgclass.from_bytes(midibytes[msgstartidx+1:msgendidxplusone])
+                    msg = msgclass.from_bytes(midibytes[msgstartidx:msgendidxplusone])
+                    if msg.channel is not None:
+                        channel_match_orna = channel_filter(msg.channel, channel_in)
+
                 except(ValueError, TypeError) as ex:
-                    msg = MIDIBadEvent(midibytes[msgstartidx+1:msgendidxplusone], ex)
+                    msg = MIDIBadEvent(midibytes[msgstartidx:msgendidxplusone], ex)
 
             # break out of while loop for a complete message on good channel
             # or we have one we do not know about
@@ -274,24 +285,23 @@ class MIDIMessage:
                 msgendidxplusone = msgstartidx + 1
                 break
 
-        return (msg, msgendidxplusone, skipped, channel)
+        return (msg, msgendidxplusone, skipped)
 
-    # channel value present to keep interface uniform but unused
     # A default method for constructing wire messages with no data.
-    # Returns a (mutable) bytearray with just the status code in.
-    # pylint: disable=unused-argument
-    def as_bytes(self, *, channel=None):
-        """Return the ``bytearray`` wire protocol representation of the object."""
-        return bytearray([self._STATUS])
+    # Returns an (immutable) bytes with just the status code in.
+    def __bytes__(self):
+        """Return the ``bytes`` wire protocol representation of the object
+            with channel number applied where appropriate."""
+        return bytes([self._STATUS])
 
     # databytes value present to keep interface uniform but unused
     # A default method for constructing message objects with no data.
     # Returns the new object.
     # pylint: disable=unused-argument
     @classmethod
-    def from_bytes(cls, databytes):
+    def from_bytes(cls, msg_bytes):
         """Creates an object from the byte stream of the wire protocol
-        (not including the first status byte)."""
+           representation of the MIDI message."""
         return cls()
 
 
@@ -308,18 +318,22 @@ class MIDIUnknownEvent(MIDIMessage):
 
     def __init__(self, status):
         self.status = status
+        super().__init__()
 
 
 class MIDIBadEvent(MIDIMessage):
     """A bad MIDI message, one that could not be parsed/constructed.
 
-    :param list data: The MIDI status number.
+    :param list data: The MIDI status including any embedded channel number
+        and associated subsequent data bytes.
     :param Exception exception: The exception used to store the repr() text representation.
 
     This could be due to status bytes appearing where data bytes are expected.
+    The channel property will not be set.
     """
     LENGTH = -1
 
-    def __init__(self, data, exception):
-        self.data = bytearray(data)
+    def __init__(self, msg_bytes, exception):
+        self.data = bytes(msg_bytes)
         self.exception_text = repr(exception)
+        super().__init__()

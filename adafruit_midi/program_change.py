@@ -48,20 +48,19 @@ class ProgramChange(MIDIMessage):
     _STATUS = 0xc0
     _STATUSMASK = 0xf0
     LENGTH = 2
-    CHANNELMASK = 0x0f
 
-    def __init__(self, patch):
+    def __init__(self, patch, *, channel=None):
         self.patch = patch
+        super().__init__(channel=channel)
         if not 0 <= self.patch <= 127:
             raise self._EX_VALUEERROR_OOR
 
-    # channel value is mandatory
-    def as_bytes(self, *, channel=None):
-        return bytearray([self._STATUS | (channel & self.CHANNELMASK),
-                          self.patch])
+    def __bytes__(self):
+        return bytes([self._STATUS | (self.channel & self.CHANNELMASK),
+                      self.patch])
 
     @classmethod
-    def from_bytes(cls, databytes):
-        return cls(databytes[0])
+    def from_bytes(cls, msg_bytes):
+        return cls(msg_bytes[1], channel=msg_bytes[0] & cls.CHANNELMASK)
 
 ProgramChange.register_message_type()

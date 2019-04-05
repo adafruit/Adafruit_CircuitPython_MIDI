@@ -50,21 +50,21 @@ class ControlChange(MIDIMessage):
     _STATUS = 0xb0
     _STATUSMASK = 0xf0
     LENGTH = 3
-    CHANNELMASK = 0x0f
 
-    def __init__(self, control, value):
+    def __init__(self, control, value, *, channel=None):
         self.control = control
         self.value = value
+        super().__init__(channel=channel)
         if not 0 <= self.control <= 127 or not 0 <= self.value <= 127:
             raise self._EX_VALUEERROR_OOR
 
-    # channel value is mandatory
-    def as_bytes(self, *, channel=None):
-        return bytearray([self._STATUS | (channel & self.CHANNELMASK),
-                          self.control, self.value])
+    def __bytes__(self):
+        return bytes([self._STATUS | (self.channel & self.CHANNELMASK),
+                      self.control, self.value])
 
     @classmethod
-    def from_bytes(cls, databytes):
-        return cls(databytes[0], databytes[1])
+    def from_bytes(cls, msg_bytes):
+        return cls(msg_bytes[1], msg_bytes[2],
+                   channel=msg_bytes[0] & cls.CHANNELMASK)
 
 ControlChange.register_message_type()

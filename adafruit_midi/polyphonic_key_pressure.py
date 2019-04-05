@@ -50,21 +50,21 @@ class PolyphonicKeyPressure(MIDIMessage):
     _STATUS = 0xa0
     _STATUSMASK = 0xf0
     LENGTH = 3
-    CHANNELMASK = 0x0f
 
-    def __init__(self, note, pressure):
+    def __init__(self, note, pressure, *, channel=None):
         self.note = note_parser(note)
         self.pressure = pressure
+        super().__init__(channel=channel)
         if not 0 <= self.note <= 127 or not 0 <= self.pressure <= 127:
             raise self._EX_VALUEERROR_OOR
 
-    # channel value is mandatory
-    def as_bytes(self, *, channel=None):
-        return bytearray([self._STATUS | (channel & self.CHANNELMASK),
-                          self.note, self.pressure])
+    def __bytes__(self):
+        return bytes([self._STATUS | (self.channel & self.CHANNELMASK),
+                      self.note, self.pressure])
 
     @classmethod
-    def from_bytes(cls, databytes):
-        return cls(databytes[0], databytes[1])
+    def from_bytes(cls, msg_bytes):
+        return cls(msg_bytes[1], msg_bytes[2],
+                   channel=msg_bytes[0] & cls.CHANNELMASK)
 
 PolyphonicKeyPressure.register_message_type()

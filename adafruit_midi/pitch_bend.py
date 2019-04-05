@@ -49,21 +49,21 @@ class PitchBend(MIDIMessage):
     _STATUS = 0xe0
     _STATUSMASK = 0xf0
     LENGTH = 3
-    CHANNELMASK = 0x0f
 
-    def __init__(self, pitch_bend):
+    def __init__(self, pitch_bend, *, channel=None):
         self.pitch_bend = pitch_bend
+        super().__init__(channel=channel)
         if not 0 <= self.pitch_bend <= 16383:
             raise self._EX_VALUEERROR_OOR
 
-    # channel value is mandatory
-    def as_bytes(self, *, channel=None):
-        return bytearray([self._STATUS | (channel & self.CHANNELMASK),
-                          self.pitch_bend & 0x7f,
-                          (self.pitch_bend >> 7) & 0x7f])
+    def __bytes__(self):
+        return bytes([self._STATUS | (self.channel & self.CHANNELMASK),
+                      self.pitch_bend & 0x7f,
+                      (self.pitch_bend >> 7) & 0x7f])
 
     @classmethod
-    def from_bytes(cls, databytes):
-        return cls(databytes[1] << 7 | databytes[0])
+    def from_bytes(cls, msg_bytes):
+        return cls(msg_bytes[2] << 7 | msg_bytes[1],
+                   channel=msg_bytes[0] & cls.CHANNELMASK)
 
 PitchBend.register_message_type()

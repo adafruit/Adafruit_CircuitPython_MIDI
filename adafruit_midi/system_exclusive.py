@@ -55,22 +55,22 @@ class SystemExclusive(MIDIMessage):
     ENDSTATUS = 0xf7
 
     def __init__(self, manufacturer_id, data):
-        self.manufacturer_id = bytearray(manufacturer_id)
-        self.data = bytearray(data)
+        self.manufacturer_id = bytes(manufacturer_id)
+        self.data = bytes(data)
+        super().__init__()
 
-    # channel value present to keep interface uniform but unused
-    def as_bytes(self, *, channel=None):
-        return (bytearray([self._STATUS])
+    def __bytes__(self):
+        return (bytes([self._STATUS])
                 + self.manufacturer_id
                 + self.data
-                + bytearray([self.ENDSTATUS]))
+                + bytes([self.ENDSTATUS]))
 
     @classmethod
-    def from_bytes(cls, databytes):
+    def from_bytes(cls, msg_bytes):
         # -1 on second arg is to avoid the ENDSTATUS which is passed
-        if databytes[0] != 0:  # pylint: disable=no-else-return
-            return cls(databytes[0:1], databytes[1:-1])
+        if msg_bytes[1] != 0:  # pylint: disable=no-else-return
+            return cls(msg_bytes[1:2], msg_bytes[2:-1])
         else:
-            return cls(databytes[0:3], databytes[3:-1])
+            return cls(msg_bytes[1:4], msg_bytes[4:-1])
 
 SystemExclusive.register_message_type()

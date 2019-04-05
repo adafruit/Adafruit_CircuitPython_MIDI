@@ -48,20 +48,19 @@ class ChannelPressure(MIDIMessage):
     _STATUS = 0xd0
     _STATUSMASK = 0xf0
     LENGTH = 2
-    CHANNELMASK = 0x0f
 
-    def __init__(self, pressure):
+    def __init__(self, pressure, *, channel=None):
         self.pressure = pressure
+        super().__init__(channel=channel)
         if not 0 <= self.pressure <= 127:
             raise self._EX_VALUEERROR_OOR
 
-    # channel value is mandatory
-    def as_bytes(self, *, channel=None):
-        return bytearray([self._STATUS | (channel & self.CHANNELMASK),
-                          self.pressure])
+    def __bytes__(self):
+        return bytes([self._STATUS | (self.channel & self.CHANNELMASK),
+                      self.pressure])
 
     @classmethod
-    def from_bytes(cls, databytes):
-        return cls(databytes[0])
+    def from_bytes(cls, msg_bytes):
+        return cls(msg_bytes[1], channel=msg_bytes[0] & cls.CHANNELMASK)
 
 ChannelPressure.register_message_type()

@@ -127,8 +127,7 @@ class MIDI:
         and return the first MIDI message (event).
         This maintains the blocking characteristics of the midi_in port.
 
-        :returns (MIDIMessage object, int channel): Returns object and channel
-           or (None, None) for nothing.
+        :returns MIDIMessage object: Returns object or None for nothing.
         """
         ### could check _midi_in is an object OR correct object OR correct interface here?
         # If the buffer here is not full then read as much as we can fit from
@@ -142,7 +141,7 @@ class MIDI:
                 del bytes_in
 
         (msg, endplusone,
-         skipped, channel) = MIDIMessage.from_message_bytes(self._in_buf, self._in_channel)
+         skipped) = MIDIMessage.from_message_bytes(self._in_buf, self._in_channel)
         if endplusone != 0:
             # This is not particularly efficient as it's copying most of bytearray
             # and deleting old one
@@ -151,23 +150,26 @@ class MIDI:
         self._skipped_bytes += skipped
 
         # msg could still be None at this point, e.g. in middle of monster SysEx
-        return (msg, channel)
+        return msg
 
     def send(self, msg, channel=None):
         """Sends a MIDI message.
 
         :param msg: Either a MIDIMessage object or a sequence (list) of MIDIMessage objects.
+            The channel property will be *updated* as a side-effect of sending message(s).
         :param int channel: Channel number, if not set the ``out_channel`` will be used.
 
         """
         if channel is None:
             channel = self.out_channel
         if isinstance(msg, MIDIMessage):
-            data = msg.as_bytes(channel=channel)
+            msg.channel = channel
+            data = bytes(msg)
         else:
             data = bytearray()
             for each_msg in msg:
-                data.extend(each_msg.as_bytes(channel=channel))
+                each_msg.channel = channel
+                data.extend(bytes(each_msg))
 
         self._send(data, len(data))
 
