@@ -42,8 +42,6 @@ Implementation Notes
 
 """
 
-import usb_midi
-
 from .midi_message import MIDIMessage, ALL_CHANNELS
 
 __version__ = "0.0.0-auto.0"
@@ -51,12 +49,12 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 
 class MIDI:
-    """MIDI helper class.
+    """MIDI helper class. ``midi_in`` or ``midi_out`` *must* be set or both together.
 
     :param midi_in: an object which implements ``read(length)``,
-        defaults to ``usb_midi.ports[0]``.
+        set to ``usb_midi.ports[0]`` for USB MIDI, default None.
     :param midi_out: an object which implements ``write(buffer, length)``,
-        defaults to ``usb_midi.ports[1]``.
+        set to ``usb_midi.ports[1]`` for USB MIDI, default None.
     :param in_channel: The input channel(s).
         This is used by ``receive`` to filter data.
         This can either be an ``int`` for the wire protocol channel number (0-15)
@@ -65,7 +63,7 @@ class MIDI:
     :param int out_channel: The wire protocol output channel number (0-15)
         used by ``send`` if no channel is specified,
         defaults to 0 (MIDI Channel 1).
-    :param int in_buf_size: Size of input buffer in bytes, default 30.
+    :param int in_buf_size: Maximum size of input buffer in bytes, default 30.
     :param bool debug: Debug mode, default False.
 
     """
@@ -75,8 +73,10 @@ class MIDI:
     PITCH_BEND = 0xE0
     CONTROL_CHANGE = 0xB0
 
-    def __init__(self, midi_in=usb_midi.ports[0], midi_out=usb_midi.ports[1], *,
+    def __init__(self, midi_in=None, midi_out=None, *,
                  in_channel=None, out_channel=0, in_buf_size=30, debug=False):
+        if midi_in is None and midi_out is None:
+            raise ValueError("No midi_in or midi_out provided")
         self._midi_in = midi_in
         self._midi_out = midi_out
         self._in_channel = in_channel  # dealing with pylint inadequacy

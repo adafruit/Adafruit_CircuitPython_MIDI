@@ -27,9 +27,9 @@ from unittest.mock import Mock, MagicMock
 import os
 verbose = int(os.getenv('TESTVERBOSE', '2'))
 
-# adafruit_midi has an import usb_midi
+# adafruit_midi had an import usb_midi
 import sys
-sys.modules['usb_midi'] = MagicMock()
+#sys.modules['usb_midi'] = MagicMock()
 
 # Borrowing the dhalbert/tannewt technique from adafruit/Adafruit_CircuitPython_Motor
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))

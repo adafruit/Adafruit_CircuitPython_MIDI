@@ -1,8 +1,9 @@
 import time
+import usb_midi
 import adafruit_midi
 
 ### 0 is MIDI channel 1
-midi = adafruit_midi.MIDI(in_channel=0)
+midi = adafruit_midi.MIDI(midi_in=usb_midi.ports[0], in_channel=0)
 
 print("Midi test II")
 

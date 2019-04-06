@@ -27,9 +27,9 @@ import random
 import os
 verbose = int(os.getenv('TESTVERBOSE', '2'))
 
-# adafruit_midi has an import usb_midi
+# adafruit_midi had an import usb_midi
 import sys
-sys.modules['usb_midi'] = MagicMock()
+#sys.modules['usb_midi'] = MagicMock()
 
 # Borrowing the dhalbert/tannewt technique from adafruit/Adafruit_CircuitPython_Motor
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -99,6 +99,12 @@ def MIDI_mocked_receive(in_c, data, read_sizes):
                            out_channel=in_c, in_channel=in_c)
     return m
 
+    
+class Test_MIDI_constructor(unittest.TestCase):
+    def test_no_inout(self):
+        # constructor likes a bit of in out
+        with self.assertRaises(ValueError):
+            adafruit_midi.MIDI()
 
 class Test_MIDI(unittest.TestCase):
     # pylint: disable=too-many-branches

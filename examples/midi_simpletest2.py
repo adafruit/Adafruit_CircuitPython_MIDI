@@ -1,13 +1,14 @@
 # simple_test demonstrating both interfaces
 import time
 import random
+import usb_midi
 import adafruit_midi
-from adafruit_midi.control_change          import ControlChange
-from adafruit_midi.note_off                import NoteOff
-from adafruit_midi.note_on                 import NoteOn
+from adafruit_midi.control_change   import ControlChange
+from adafruit_midi.note_off         import NoteOff
+from adafruit_midi.note_on          import NoteOn
 from adafruit_midi.pitch_bend       import PitchBend
 
-midi = adafruit_midi.MIDI(out_channel=0)
+midi = adafruit_midi.MIDI(midi_out=usb_midi.ports[1], out_channel=0)
 
 print("Midi test")
 
@@ -25,6 +26,7 @@ while True:
     midi.note_off(44, 120)
     midi.control_change(3, 44)
     time.sleep(0.5)
+
     # send message(s) interface
     midi.send(NoteOn(44, 120))
     time.sleep(0.25)

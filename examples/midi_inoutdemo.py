@@ -1,5 +1,6 @@
 # midi_inoutdemo - demonstrates receiving and sending MIDI events
 
+import usb_midi
 import adafruit_midi
 
 # TimingClock is worth importing first if present as it
@@ -21,7 +22,9 @@ from adafruit_midi.system_exclusive        import SystemExclusive
 
 from adafruit_midi.midi_message import MIDIUnknownEvent
 
-midi = adafruit_midi.MIDI(in_channel=(1, 2, 3), out_channel=0)
+midi = adafruit_midi.MIDI(midi_in=usb_midi.ports[0],
+                          midi_out=usb_midi.ports[1],
+                          in_channel=(1, 2, 3), out_channel=0)
 
 print("Midi Demo in and out")
 
