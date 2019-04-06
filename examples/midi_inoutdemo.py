@@ -35,12 +35,12 @@ print("Listening on input channels:", tuple([c + 1 for c in midi.in_channel]))
 major_chord = [0, 4, 7]
 while True:
     while True:
-        (msg_in, channel_in) = midi.receive()  # non-blocking read
+        msg_in = midi.receive()  # non-blocking read
         # For a Note On or Note Off play a major chord
         # For any other known event just forward it
         if isinstance(msg_in, NoteOn) and msg_in.velocity != 0:
             print("Playing major chord with root", msg_in.note,
-                  "from channel", channel_in + 1)
+                  "from channel", msg.channel + 1)
             for offset in major_chord:
                 new_note = msg_in.note + offset
                 if 0 <= new_note <= 127:
