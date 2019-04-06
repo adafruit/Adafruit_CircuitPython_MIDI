@@ -164,12 +164,12 @@ class MIDI:
             channel = self.out_channel
         if isinstance(msg, MIDIMessage):
             msg.channel = channel
-            data = bytes(msg)
+            data = msg.__bytes__()  # bytes(object) does not work in uPy
         else:
             data = bytearray()
             for each_msg in msg:
                 each_msg.channel = channel
-                data.extend(bytes(each_msg))
+                data.extend(each_msg.__bytes__())
 
         self._send(data, len(data))
 
