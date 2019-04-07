@@ -1,4 +1,7 @@
 # Check memory usage
+
+# pylint: disable=multiple-statements,unused-import,wrong-import-position
+
 import time
 import random
 import gc
@@ -37,4 +40,3 @@ midi = adafruit_midi.MIDI(midi_in=usb_midi.ports[0],
                           in_channel=0, out_channel=0)
 
 gc.collect() ; print(gc.mem_free())
-
