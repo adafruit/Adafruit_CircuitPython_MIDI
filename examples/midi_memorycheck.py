@@ -1,6 +1,11 @@
 # Check memory usage
 
-# pylint: disable=multiple-statements,unused-import,wrong-import-position
+# pylint: disable=multiple-statements,unused-import,wrong-import-position,no-member
+
+# The disable for no-member should not really be required
+# probably a difference between Python 3 module and micropython
+#
+# E:  8,21: Module 'gc' has no 'mem_free' member (no-member)
 
 import time
 import random
