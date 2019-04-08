@@ -122,7 +122,6 @@ class MIDIMessage:
     _statusandmask_to_class = []
 
     def __init__(self, *, channel=None):
-        ###  TODO - can i kwargs this?????
         self._channel = channel  # dealing with pylint inadequacy
         self.channel = channel
 
@@ -136,12 +135,13 @@ class MIDIMessage:
     @channel.setter
     def channel(self, channel):
         if channel is not None and not 0 <= channel <= 15:
-            raise "channel must be 0-15 or None"
+            raise "Channel must be 0-15 or None"
         self._channel = channel
 
     @classmethod
     def register_message_type(cls):
         """Register a new message by its status value and mask.
+           This is called automagically at ``import`` time for each message.
         """
         ### These must be inserted with more specific masks first
         insert_idx = len(MIDIMessage._statusandmask_to_class)
