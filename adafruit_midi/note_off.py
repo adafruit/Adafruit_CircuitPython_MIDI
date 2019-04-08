@@ -44,7 +44,7 @@ class NoteOff(MIDIMessage):
 
     :param note: The note (key) number either as an ``int`` (0-127) or a
         ``str`` which is parsed, e.g. "C4" (middle C) is 60, "A4" is 69.
-    :param int velocity: The release velocity, 0-127.
+    :param int velocity: The release velocity, 0-127, defaults to 0.
 
     """
 
@@ -52,7 +52,7 @@ class NoteOff(MIDIMessage):
     _STATUSMASK = 0xf0
     LENGTH = 3
 
-    def __init__(self, note, velocity, *, channel=None):
+    def __init__(self, note, velocity=0, *, channel=None):
         self.note = note_parser(note)
         self.velocity = velocity
         super().__init__(channel=channel)

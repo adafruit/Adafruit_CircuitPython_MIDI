@@ -223,6 +223,12 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(object3.velocity, 0x50)
         self.assertEqual(object3.channel, 7)
 
+        object4 = NoteOn(60)  # velocity defaults to 127
+
+        self.assertEqual(object4.note, 60)
+        self.assertEqual(object4.velocity, 127)
+        self.assertIsNone(object4.channel)
+
     def test_SystemExclusive_NoteOn(self):
         data = bytes([0xf0, 0x42, 0x01, 0x02, 0x03, 0x04, 0xf7,  0x90 | 14, 0x30, 0x60])
         ichannel = 14
@@ -334,6 +340,10 @@ class Test_MIDIMessage_NoteOff_constructor(unittest.TestCase):
         object3 = NoteOff("C#4", 0x00)
         self.assertEqual(object3.note, 61)
         self.assertEqual(object3.velocity, 0)
+
+        object4 = NoteOff("C#4")  # velocity defaults to 0
+        self.assertEqual(object4.note, 61)
+        self.assertEqual(object4.velocity, 0)
 
     def test_NoteOff_constructor_valueerror1(self):
         with self.assertRaises(ValueError):
