@@ -20,7 +20,7 @@ extensions = [
 # Uncomment the below if you use native CircuitPython modules such as
 # digitalio, micropython and busio. List the modules you use. Without it, the
 # autodoc module docs will fail to generate with a warning.
-autodoc_mock_imports = ["usb_midi"]
+autodoc_mock_imports = []
 
 
 intersphinx_mapping = {'python': ('https://docs.python.org/3.4', None),'CircuitPython': ('https://circuitpython.readthedocs.io/en/latest/', None)}
@@ -35,8 +35,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Adafruit MIDI Library'
-copyright = u'2019 Ladyada'
-author = u'Ladyada'
+copyright = u'2019 Ladyada & Kevin J. Walters'
+author = u'Ladyada & Kevin J. Walters'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
