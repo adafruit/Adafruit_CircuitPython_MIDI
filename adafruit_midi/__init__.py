@@ -68,11 +68,6 @@ class MIDI:
 
     """
 
-    NOTE_ON = 0x90
-    NOTE_OFF = 0x80
-    PITCH_BEND = 0xE0
-    CONTROL_CHANGE = 0xB0
-
     def __init__(self, midi_in=None, midi_out=None, *,
                  in_channel=None, out_channel=0, in_buf_size=30, debug=False):
         if midi_in is None and midi_out is None:
@@ -172,55 +167,6 @@ class MIDI:
                 data.extend(each_msg.__bytes__())
 
         self._send(data, len(data))
-
-    def note_on(self, note, vel, channel=None):
-        """Sends a MIDI Note On message.
-
-        :param int note: The note number. Must be 0-127.
-        :param int vel: The note velocity. Must be 0-127.
-
-        """
-        self._generic_3(self.NOTE_ON, note, vel, channel)
-
-    def note_off(self, note, vel, channel=None):
-        """Sends a MIDI Note Off message.
-
-        :param int note: The note number. Must be 0-127.
-        :param int vel: The note velocity. Must be 0-127.
-
-        """
-        self._generic_3(self.NOTE_OFF, note, vel, channel)
-
-    def pitch_bend(self, value, channel=None):
-        """Send a MIDI Pitch Wheel message.
-
-        :param int value: Range is 0-16383. A ``value`` of 8192 equates to no pitch bend, a value
-                          of less than 8192 equates to a negative pitch bend, and a value of more
-                          than 8192 equates to a positive pitch bend.
-
-        """
-        self._generic_3(self.PITCH_BEND, value & 0x7F, value >> 7, channel)
-
-    def control_change(self, control, value, channel=None):
-        """Sends a MIDI CC message.
-
-        :param int control: The controller number. Must be 0-127.
-        :param int value: The control value. Must be 0-127.
-
-        """
-        self._generic_3(self.CONTROL_CHANGE, control, value, channel)
-
-    def _generic_3(self, cmd, arg1, arg2, channel=None):
-        if not 0 <= arg1 <= 0x7F:
-            raise RuntimeError("Argument 1 value %d invalid" % arg1)
-        if not 0 <= arg2 <= 0x7F:
-            raise RuntimeError("Argument 2 value %d invalid" % arg2)
-        if channel is None:
-            channel = self._out_channel
-        self._outbuf[0] = (cmd & 0xF0) | (channel & 0x0f)
-        self._outbuf[1] = arg1
-        self._outbuf[2] = arg2
-        self._send(self._outbuf, 3)
 
     def _send(self, packet, num):
         if self._debug:

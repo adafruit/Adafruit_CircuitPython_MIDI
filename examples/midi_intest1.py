@@ -18,7 +18,7 @@ midi = adafruit_midi.MIDI(midi_in=usb_midi.ports[0], in_channel=0)
 print("Midi input test with pauses")
 
 # Convert channel numbers at the presentation layer to the ones musicians use
-print("Input channel:", midi.in_channel + 1 )
+print("Input channel:", midi.in_channel + 1)
 
 # play with the pause to simulate code doing other stuff
 # in the loop
