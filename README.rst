@@ -68,11 +68,14 @@ Usage Example
     print("Default output MIDI channel:", midi.out_channel + 1)
 
     while True:
-        midi.note_on(44, 120)
-        midi.note_off(44, 120)
-        midi.control_change(3, 44)
-        midi.pitch_bend(random.randint(0,16383))
-        time.sleep(1)
+        midi.send(NoteOn(44, 120))  # G sharp 2nd octave
+        time.sleep(0.25)
+        a_pitch_bend = PitchBend(random.randint(0, 16383))
+        midi.send(a_pitch_bend)
+        time.sleep(0.25)   
+        midi.send([NoteOff("G#2", 120),
+                   ControlChange(3, 44)])
+        time.sleep(0.5)
 
 
 Contributing
