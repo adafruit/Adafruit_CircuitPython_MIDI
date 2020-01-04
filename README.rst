@@ -9,8 +9,8 @@ Introduction
     :target: https://discord.gg/nBQh6qu
     :alt: Discord
 
-.. image:: https://travis-ci.com/adafruit/Adafruit_CircuitPython_MIDI.svg?branch=master
-    :target: https://travis-ci.com/adafruit/Adafruit_CircuitPython_MIDI
+.. image:: https://github.com/adafruit/Adafruit_CircuitPython_MIDI/workflows/Build%20CI/badge.svg
+    :target: https://github.com/adafruit/Adafruit_CircuitPython_MIDI/actions/
     :alt: Build Status
 
 A CircuitPython helper for encoding/decoding MIDI packets over a MIDI or UART connection.
