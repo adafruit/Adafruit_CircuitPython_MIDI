@@ -80,14 +80,12 @@ def note_parser(note):
         if not 0 <= noteidx <= 6:
             raise ValueError("Bad note")
         sharpen = 0
-        if note[1] == '#':
+        if note[1] == "#":
             sharpen = 1
-        elif note[1] == 'b':
+        elif note[1] == "b":
             sharpen = -1
         # int may throw exception here
-        midi_note = (int(note[1 + abs(sharpen):]) * 12
-                     + NOTE_OFFSET[noteidx]
-                     + sharpen)
+        midi_note = int(note[1 + abs(sharpen) :]) * 12 + NOTE_OFFSET[noteidx] + sharpen
 
     return midi_note
 
@@ -108,10 +106,11 @@ class MIDIMessage:
 
     This is an *abstract* class.
     """
+
     _STATUS = None
     _STATUSMASK = None
     LENGTH = None
-    CHANNELMASK = 0x0f
+    CHANNELMASK = 0x0F
     ENDSTATUS = None
 
     # Commonly used exceptions to save memory
@@ -150,9 +149,9 @@ class MIDIMessage:
                 insert_idx = idx
                 break
 
-        MIDIMessage._statusandmask_to_class.insert(insert_idx,
-                                                   ((cls._STATUS, cls._STATUSMASK), cls))
-
+        MIDIMessage._statusandmask_to_class.insert(
+            insert_idx, ((cls._STATUS, cls._STATUSMASK), cls)
+        )
 
     # pylint: disable=too-many-arguments
     @classmethod
@@ -171,8 +170,7 @@ class MIDIMessage:
                 else:
                     bad_termination = True
                 break
-            else:
-                msgendidxplusone += 1
+            msgendidxplusone += 1
 
         if good_termination or bad_termination:
             msgendidxplusone += 1
@@ -199,22 +197,27 @@ class MIDIMessage:
                     break
 
                 if msgclass.LENGTH < 0:  # indicator of variable length message
-                    (msgendidxplusone,
-                     terminated_msg,
-                     bad_termination) = cls._search_eom_status(buf,
-                                                               msgclass.ENDSTATUS,
-                                                               msgstartidx,
-                                                               msgendidxplusone,
-                                                               endidx)
+                    (
+                        msgendidxplusone,
+                        terminated_msg,
+                        bad_termination,
+                    ) = cls._search_eom_status(
+                        buf, msgclass.ENDSTATUS, msgstartidx, msgendidxplusone, endidx
+                    )
                     if not terminated_msg:
                         complete_msg = False
-                else: # fixed length message
+                else:  # fixed length message
                     msgendidxplusone = msgstartidx + msgclass.LENGTH
                 break
 
-        return (msgclass, status,
-                known_msg, complete_msg, bad_termination,
-                msgendidxplusone)
+        return (
+            msgclass,
+            status,
+            known_msg,
+            complete_msg,
+            bad_termination,
+            msgendidxplusone,
+        )
 
     # pylint: disable=too-many-locals,too-many-branches
     @classmethod
@@ -247,15 +250,16 @@ class MIDIMessage:
                 return (None, endidx + 1, skipped)
 
             # Try and match the status byte found in midibytes
-            (msgclass,
-             status,
-             known_message,
-             complete_message,
-             bad_termination,
-             msgendidxplusone) = cls._match_message_status(midibytes,
-                                                           msgstartidx,
-                                                           msgendidxplusone,
-                                                           endidx)
+            (
+                msgclass,
+                status,
+                known_message,
+                complete_message,
+                bad_termination,
+                msgendidxplusone,
+            ) = cls._match_message_status(
+                midibytes, msgstartidx, msgendidxplusone, endidx
+            )
             channel_match_orna = True
             if complete_message and not bad_termination:
                 try:
@@ -263,7 +267,7 @@ class MIDIMessage:
                     if msg.channel is not None:
                         channel_match_orna = channel_filter(msg.channel, channel_in)
 
-                except(ValueError, TypeError) as ex:
+                except (ValueError, TypeError) as ex:
                     msg = MIDIBadEvent(midibytes[msgstartidx:msgendidxplusone], ex)
 
             # break out of while loop for a complete message on good channel
@@ -272,8 +276,8 @@ class MIDIMessage:
                 if complete_message:
                     if channel_match_orna:
                         break
-                    else:  # advance to next message
-                        msgstartidx = msgendidxplusone
+                    # advance to next message
+                    msgstartidx = msgendidxplusone
                 else:
                     # Important case of a known message but one that is not
                     # yet complete - leave bytes in buffer and wait for more
@@ -314,6 +318,7 @@ class MIDIUnknownEvent(MIDIMessage):
     This can either occur because there is no class representing the message
     or because it is not imported.
     """
+
     LENGTH = -1
 
     def __init__(self, status):
@@ -331,6 +336,7 @@ class MIDIBadEvent(MIDIMessage):
     This could be due to status bytes appearing where data bytes are expected.
     The channel property will not be set.
     """
+
     LENGTH = -1
 
     def __init__(self, msg_bytes, exception):

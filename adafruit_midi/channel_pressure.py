@@ -45,8 +45,8 @@ class ChannelPressure(MIDIMessage):
     :param int pressure: The pressure, 0-127.
     """
 
-    _STATUS = 0xd0
-    _STATUSMASK = 0xf0
+    _STATUS = 0xD0
+    _STATUSMASK = 0xF0
     LENGTH = 2
 
     def __init__(self, pressure, *, channel=None):
@@ -56,11 +56,11 @@ class ChannelPressure(MIDIMessage):
             raise self._EX_VALUEERROR_OOR
 
     def __bytes__(self):
-        return bytes([self._STATUS | (self.channel & self.CHANNELMASK),
-                      self.pressure])
+        return bytes([self._STATUS | (self.channel & self.CHANNELMASK), self.pressure])
 
     @classmethod
     def from_bytes(cls, msg_bytes):
         return cls(msg_bytes[1], channel=msg_bytes[0] & cls.CHANNELMASK)
+
 
 ChannelPressure.register_message_type()

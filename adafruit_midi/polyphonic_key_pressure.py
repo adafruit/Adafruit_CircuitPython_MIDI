@@ -47,8 +47,8 @@ class PolyphonicKeyPressure(MIDIMessage):
     :param int pressure: The pressure, 0-127.
     """
 
-    _STATUS = 0xa0
-    _STATUSMASK = 0xf0
+    _STATUS = 0xA0
+    _STATUSMASK = 0xF0
     LENGTH = 3
 
     def __init__(self, note, pressure, *, channel=None):
@@ -59,12 +59,13 @@ class PolyphonicKeyPressure(MIDIMessage):
             raise self._EX_VALUEERROR_OOR
 
     def __bytes__(self):
-        return bytes([self._STATUS | (self.channel & self.CHANNELMASK),
-                      self.note, self.pressure])
+        return bytes(
+            [self._STATUS | (self.channel & self.CHANNELMASK), self.note, self.pressure]
+        )
 
     @classmethod
     def from_bytes(cls, msg_bytes):
-        return cls(msg_bytes[1], msg_bytes[2],
-                   channel=msg_bytes[0] & cls.CHANNELMASK)
+        return cls(msg_bytes[1], msg_bytes[2], channel=msg_bytes[0] & cls.CHANNELMASK)
+
 
 PolyphonicKeyPressure.register_message_type()

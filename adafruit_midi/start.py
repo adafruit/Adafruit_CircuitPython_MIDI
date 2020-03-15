@@ -43,8 +43,9 @@ class Start(MIDIMessage):
     """Start MIDI message.
     """
 
-    _STATUS = 0xfa
-    _STATUSMASK = 0xff
+    _STATUS = 0xFA
+    _STATUSMASK = 0xFF
     LENGTH = 1
+
 
 Start.register_message_type()

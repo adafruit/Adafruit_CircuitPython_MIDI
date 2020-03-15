@@ -48,8 +48,9 @@ class TimingClock(MIDIMessage):
        message to a CircuitPython device to reduce the amount of message processing.
     """
 
-    _STATUS = 0xf8
-    _STATUSMASK = 0xff
+    _STATUS = 0xF8
+    _STATUSMASK = 0xFF
     LENGTH = 1
+
 
 TimingClock.register_message_type()

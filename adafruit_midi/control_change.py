@@ -47,8 +47,8 @@ class ControlChange(MIDIMessage):
 
     """
 
-    _STATUS = 0xb0
-    _STATUSMASK = 0xf0
+    _STATUS = 0xB0
+    _STATUSMASK = 0xF0
     LENGTH = 3
 
     def __init__(self, control, value, *, channel=None):
@@ -59,12 +59,13 @@ class ControlChange(MIDIMessage):
             raise self._EX_VALUEERROR_OOR
 
     def __bytes__(self):
-        return bytes([self._STATUS | (self.channel & self.CHANNELMASK),
-                      self.control, self.value])
+        return bytes(
+            [self._STATUS | (self.channel & self.CHANNELMASK), self.control, self.value]
+        )
 
     @classmethod
     def from_bytes(cls, msg_bytes):
-        return cls(msg_bytes[1], msg_bytes[2],
-                   channel=msg_bytes[0] & cls.CHANNELMASK)
+        return cls(msg_bytes[1], msg_bytes[2], channel=msg_bytes[0] & cls.CHANNELMASK)
+
 
 ControlChange.register_message_type()

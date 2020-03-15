@@ -45,8 +45,8 @@ class ProgramChange(MIDIMessage):
     :param int patch: The new program/patch number to use, 0-127.
     """
 
-    _STATUS = 0xc0
-    _STATUSMASK = 0xf0
+    _STATUS = 0xC0
+    _STATUSMASK = 0xF0
     LENGTH = 2
 
     def __init__(self, patch, *, channel=None):
@@ -56,11 +56,11 @@ class ProgramChange(MIDIMessage):
             raise self._EX_VALUEERROR_OOR
 
     def __bytes__(self):
-        return bytes([self._STATUS | (self.channel & self.CHANNELMASK),
-                      self.patch])
+        return bytes([self._STATUS | (self.channel & self.CHANNELMASK), self.patch])
 
     @classmethod
     def from_bytes(cls, msg_bytes):
         return cls(msg_bytes[1], channel=msg_bytes[0] & cls.CHANNELMASK)
+
 
 ProgramChange.register_message_type()

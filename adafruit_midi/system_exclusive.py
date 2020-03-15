@@ -49,10 +49,10 @@ class SystemExclusive(MIDIMessage):
     This message can only be parsed if it fits within the input buffer in :class:MIDI.
     """
 
-    _STATUS = 0xf0
-    _STATUSMASK = 0xff
+    _STATUS = 0xF0
+    _STATUSMASK = 0xFF
     LENGTH = -1
-    ENDSTATUS = 0xf7
+    ENDSTATUS = 0xF7
 
     def __init__(self, manufacturer_id, data):
         self.manufacturer_id = bytes(manufacturer_id)
@@ -60,10 +60,12 @@ class SystemExclusive(MIDIMessage):
         super().__init__()
 
     def __bytes__(self):
-        return (bytes([self._STATUS])
-                + self.manufacturer_id
-                + self.data
-                + bytes([self.ENDSTATUS]))
+        return (
+            bytes([self._STATUS])
+            + self.manufacturer_id
+            + self.data
+            + bytes([self.ENDSTATUS])
+        )
 
     @classmethod
     def from_bytes(cls, msg_bytes):
@@ -72,5 +74,6 @@ class SystemExclusive(MIDIMessage):
             return cls(msg_bytes[1:2], msg_bytes[2:-1])
         else:
             return cls(msg_bytes[1:4], msg_bytes[4:-1])
+
 
 SystemExclusive.register_message_type()
