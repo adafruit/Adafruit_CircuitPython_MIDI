@@ -46,8 +46,8 @@ class PitchBend(MIDIMessage):
         bend from 0 through 8192 (midpoint, no bend) to 16383.
     """
 
-    _STATUS = 0xe0
-    _STATUSMASK = 0xf0
+    _STATUS = 0xE0
+    _STATUSMASK = 0xF0
     LENGTH = 3
 
     def __init__(self, pitch_bend, *, channel=None):
@@ -57,13 +57,19 @@ class PitchBend(MIDIMessage):
             raise self._EX_VALUEERROR_OOR
 
     def __bytes__(self):
-        return bytes([self._STATUS | (self.channel & self.CHANNELMASK),
-                      self.pitch_bend & 0x7f,
-                      (self.pitch_bend >> 7) & 0x7f])
+        return bytes(
+            [
+                self._STATUS | (self.channel & self.CHANNELMASK),
+                self.pitch_bend & 0x7F,
+                (self.pitch_bend >> 7) & 0x7F,
+            ]
+        )
 
     @classmethod
     def from_bytes(cls, msg_bytes):
-        return cls(msg_bytes[2] << 7 | msg_bytes[1],
-                   channel=msg_bytes[0] & cls.CHANNELMASK)
+        return cls(
+            msg_bytes[2] << 7 | msg_bytes[1], channel=msg_bytes[0] & cls.CHANNELMASK
+        )
+
 
 PitchBend.register_message_type()

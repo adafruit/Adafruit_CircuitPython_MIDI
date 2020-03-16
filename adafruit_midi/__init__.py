@@ -68,8 +68,16 @@ class MIDI:
 
     """
 
-    def __init__(self, midi_in=None, midi_out=None, *,
-                 in_channel=None, out_channel=0, in_buf_size=30, debug=False):
+    def __init__(
+        self,
+        midi_in=None,
+        midi_out=None,
+        *,
+        in_channel=None,
+        out_channel=0,
+        in_buf_size=30,
+        debug=False
+    ):
         if midi_in is None and midi_out is None:
             raise ValueError("No midi_in or midi_out provided")
         self._midi_in = midi_in
@@ -135,8 +143,9 @@ class MIDI:
                 self._in_buf.extend(bytes_in)
                 del bytes_in
 
-        (msg, endplusone,
-         skipped) = MIDIMessage.from_message_bytes(self._in_buf, self._in_channel)
+        (msg, endplusone, skipped) = MIDIMessage.from_message_bytes(
+            self._in_buf, self._in_channel
+        )
         if endplusone != 0:
             # This is not particularly efficient as it's copying most of bytearray
             # and deleting old one
