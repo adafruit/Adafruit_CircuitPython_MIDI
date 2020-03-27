@@ -42,28 +42,20 @@ Implementation Notes
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
-# This is a special channel value outside of wire protocol range used to
-# represent all of the sixteen channels
-ALL_CHANNELS = -1
-
 # From C3 - A and B are above G
 # Semitones     A   B   C   D   E   F   G
 NOTE_OFFSET = [21, 23, 12, 14, 16, 17, 19]
 
-# pylint: disable=no-else-return
+
 def channel_filter(channel, channel_spec):
     """
     Utility function to return True iff the given channel matches channel_spec.
     """
     if isinstance(channel_spec, int):
-        if channel_spec == ALL_CHANNELS:
-            return True
-        else:
-            return channel == channel_spec
+        return channel == channel_spec
     elif isinstance(channel_spec, tuple):
         return channel in channel_spec
-    else:
-        raise ValueError("Incorrect type for channel_spec")
+    raise ValueError("Incorrect type for channel_spec" + str(type(channel_spec)))
 
 
 def note_parser(note):
@@ -170,7 +162,8 @@ class MIDIMessage:
                 else:
                     bad_termination = True
                 break
-            msgendidxplusone += 1
+            else:
+                msgendidxplusone += 1
 
         if good_termination or bad_termination:
             msgendidxplusone += 1
@@ -276,8 +269,8 @@ class MIDIMessage:
                 if complete_message:
                     if channel_match_orna:
                         break
-                    # advance to next message
-                    msgstartidx = msgendidxplusone
+                    else:  # advance to next message
+                        msgstartidx = msgendidxplusone
                 else:
                     # Important case of a known message but one that is not
                     # yet complete - leave bytes in buffer and wait for more
