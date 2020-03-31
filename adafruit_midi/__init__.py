@@ -42,7 +42,7 @@ Implementation Notes
 
 """
 
-from .midi_message import MIDIMessage, ALL_CHANNELS
+from .midi_message import MIDIMessage
 
 __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
@@ -58,8 +58,8 @@ class MIDI:
     :param in_channel: The input channel(s).
         This is used by ``receive`` to filter data.
         This can either be an ``int`` for the wire protocol channel number (0-15)
-        a tuple of ``int`` to listen for multiple channels or ``"ALL"``.
-        Defaults to None.
+        a tuple of ``int`` to listen for multiple channels.
+        Defaults to all channels.
     :param int out_channel: The wire protocol output channel number (0-15)
         used by ``send`` if no channel is specified,
         defaults to 0 (MIDI Channel 1).
@@ -82,9 +82,9 @@ class MIDI:
             raise ValueError("No midi_in or midi_out provided")
         self._midi_in = midi_in
         self._midi_out = midi_out
-        self._in_channel = in_channel  # dealing with pylint inadequacy
+        self._in_channel = in_channel
         self.in_channel = in_channel
-        self._out_channel = out_channel  # dealing with pylint inadequacy
+        self._out_channel = out_channel
         self.out_channel = out_channel
         self._debug = debug
         # This input buffer holds what has been read from midi_in
@@ -98,16 +98,16 @@ class MIDI:
         """The incoming MIDI channel. Must be 0-15. Correlates to MIDI channels 1-16, e.g.
         ``in_channel = 3`` will listen on MIDI channel 4.
         Can also listen on multiple channels, e.g. ``in_channel  = (0,1,2)``
-        will listen on MIDI channels 1-3 or ``in_channel = "ALL"`` for every channel.
-        Default is None."""
+        will listen on MIDI channels 1-3.
+        Default is all channels."""
         return self._in_channel
 
     @in_channel.setter
     def in_channel(self, channel):
-        if channel is None or (isinstance(channel, int) and 0 <= channel <= 15):
+        if channel is None or channel == "ALL":
+            self._in_channel = tuple(range(16))
+        elif isinstance(channel, int) and 0 <= channel <= 15:
             self._in_channel = channel
-        elif isinstance(channel, str) and channel == "ALL":
-            self._in_channel = ALL_CHANNELS
         elif isinstance(channel, tuple) and all(0 <= c <= 15 for c in channel):
             self._in_channel = channel
         else:
