@@ -42,4 +42,3 @@
 
 .. automodule:: adafruit_midi.timing_clock
       :members:
-
