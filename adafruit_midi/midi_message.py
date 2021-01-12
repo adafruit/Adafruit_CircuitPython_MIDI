@@ -1,24 +1,7 @@
-# The MIT License (MIT)
+# SPDX-FileCopyrightText: 2019 Kevin J. Walters for Adafruit Industries
 #
-# Copyright (c) 2019 Kevin J. Walters
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+# SPDX-License-Identifier: MIT
+
 """
 `adafruit_midi.midi_message`
 ================================================================================
@@ -119,7 +102,7 @@ class MIDIMessage:
     @property
     def channel(self):
         """The channel number of the MIDI message where appropriate.
-           This is *updated* by MIDI.send() method.
+        This is *updated* by MIDI.send() method.
         """
         return self._channel
 
@@ -132,7 +115,7 @@ class MIDIMessage:
     @classmethod
     def register_message_type(cls):
         """Register a new message by its status value and mask.
-           This is called automagically at ``import`` time for each message.
+        This is called automagically at ``import`` time for each message.
         """
         ### These must be inserted with more specific masks first
         insert_idx = len(MIDIMessage._statusandmask_to_class)
@@ -287,7 +270,7 @@ class MIDIMessage:
     # Returns an (immutable) bytes with just the status code in.
     def __bytes__(self):
         """Return the ``bytes`` wire protocol representation of the object
-            with channel number applied where appropriate."""
+        with channel number applied where appropriate."""
         return bytes([self._STATUS])
 
     # databytes value present to keep interface uniform but unused
@@ -297,7 +280,7 @@ class MIDIMessage:
     @classmethod
     def from_bytes(cls, msg_bytes):
         """Creates an object from the byte stream of the wire protocol
-           representation of the MIDI message."""
+        representation of the MIDI message."""
         return cls()
 
 

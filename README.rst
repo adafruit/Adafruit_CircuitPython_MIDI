@@ -72,7 +72,7 @@ Usage Example
         time.sleep(0.25)
         a_pitch_bend = PitchBend(random.randint(0, 16383))
         midi.send(a_pitch_bend)
-        time.sleep(0.25)   
+        time.sleep(0.25)
         midi.send([NoteOff("G#2", 120),
                    ControlChange(3, 44)])
         time.sleep(0.5)

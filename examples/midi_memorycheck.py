@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2021 ladyada for Adafruit Industries
+# SPDX-License-Identifier: MIT
+
 # Check memory usage
 
 # pylint: disable=multiple-statements,unused-import,wrong-import-position,no-member
