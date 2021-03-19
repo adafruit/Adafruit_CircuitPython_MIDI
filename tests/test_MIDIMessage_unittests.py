@@ -1,6 +1,8 @@
+# pylint: disable=invalid-name
 # SPDX-FileCopyrightText: 2019 Kevin J. Walters for Adafruit Industries
 #
 # SPDX-License-Identifier: MIT
+# pylint: enable=invalid-name
 
 import unittest
 
@@ -29,7 +31,9 @@ from adafruit_midi.system_exclusive import SystemExclusive
 # pylint: enable=wrong-import-position
 
 
-class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
+class Test_MIDIMessage_from_message_byte_tests(
+    unittest.TestCase
+):  # pylint: disable=invalid-name
     def test_NoteOn_basic(self):
         data = bytes([0x90, 0x30, 0x7F])
         ichannel = 0
@@ -316,7 +320,9 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(skipped, 0)
 
 
-class Test_MIDIMessage_NoteOn_constructor(unittest.TestCase):
+class Test_MIDIMessage_NoteOn_constructor(
+    unittest.TestCase
+):  # pylint: disable=invalid-name
     def test_NoteOn_constructor_string(self):
         object1 = NoteOn("C4", 0x64)
         self.assertEqual(object1.note, 60)
@@ -356,7 +362,9 @@ class Test_MIDIMessage_NoteOn_constructor(unittest.TestCase):
             NoteOn("CC4", 0x7F)
 
 
-class Test_MIDIMessage_NoteOff_constructor(unittest.TestCase):
+class Test_MIDIMessage_NoteOff_constructor(
+    unittest.TestCase
+):  # pylint: disable=invalid-name
     # mostly cut and paste from NoteOn above
     def test_NoteOff_constructor_string(self):
         object1 = NoteOff("C4", 0x64)
