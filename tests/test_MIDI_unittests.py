@@ -3,13 +3,14 @@
 # SPDX-License-Identifier: MIT
 
 import unittest
-from unittest.mock import Mock, MagicMock, call
+from unittest.mock import Mock, call
 
 import random
 import os
 
 verbose = int(os.getenv("TESTVERBOSE", "2"))
 
+# pylint: disable=wrong-import-position
 # adafruit_midi had an import usb_midi
 import sys
 
@@ -24,15 +25,12 @@ from adafruit_midi.control_change import ControlChange
 from adafruit_midi.note_off import NoteOff
 from adafruit_midi.note_on import NoteOn
 from adafruit_midi.pitch_bend import PitchBend
-from adafruit_midi.polyphonic_key_pressure import PolyphonicKeyPressure
-from adafruit_midi.program_change import ProgramChange
-from adafruit_midi.start import Start
-from adafruit_midi.stop import Stop
 from adafruit_midi.system_exclusive import SystemExclusive
-from adafruit_midi.timing_clock import TimingClock
 
 # Import after messages - opposite to other test file
 import adafruit_midi
+
+# pylint: enable=wrong-import-position
 
 
 # For loopback/echo tests

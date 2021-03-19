@@ -3,13 +3,13 @@
 # SPDX-License-Identifier: MIT
 
 import unittest
-from unittest.mock import Mock, MagicMock
 
 
 import os
 
 verbose = int(os.getenv("TESTVERBOSE", "2"))
 
+# pylint: disable=wrong-import-position
 # adafruit_midi had an import usb_midi
 import sys
 
@@ -22,17 +22,11 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import adafruit_midi
 
 # Full monty
-from adafruit_midi.channel_pressure import ChannelPressure
-from adafruit_midi.control_change import ControlChange
 from adafruit_midi.note_off import NoteOff
 from adafruit_midi.note_on import NoteOn
-from adafruit_midi.pitch_bend import PitchBend
-from adafruit_midi.polyphonic_key_pressure import PolyphonicKeyPressure
-from adafruit_midi.program_change import ProgramChange
-from adafruit_midi.start import Start
-from adafruit_midi.stop import Stop
 from adafruit_midi.system_exclusive import SystemExclusive
-from adafruit_midi.timing_clock import TimingClock
+
+# pylint: enable=wrong-import-position
 
 
 class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
@@ -118,7 +112,7 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertIsInstance(
             msg,
             NoteOn,
-            "NoteOn is expected if SystemExclusive is loaded otherwise it would be MIDIUnknownEvent",
+            "NoteOn is expected if SystemExclusive is loaded otherwise it'd be MIDIUnknownEvent",
         )
         self.assertEqual(msg.note, 0x30)
         self.assertEqual(msg.velocity, 0x32)
