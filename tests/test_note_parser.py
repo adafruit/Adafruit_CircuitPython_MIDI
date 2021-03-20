@@ -3,13 +3,12 @@
 # SPDX-License-Identifier: MIT
 
 import unittest
-from unittest.mock import Mock, MagicMock, call
 
-import random
 import os
 
 verbose = int(os.getenv("TESTVERBOSE", "2"))
 
+# pylint: disable=wrong-import-position
 # adafruit_midi had an import usb_midi
 import sys
 
@@ -19,6 +18,8 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from adafruit_midi.midi_message import note_parser
+
+# pylint: enable=wrong-import-position
 
 
 class Test_note_parser(unittest.TestCase):
