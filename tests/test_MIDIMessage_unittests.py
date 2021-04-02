@@ -1,15 +1,17 @@
+# pylint: disable=invalid-name
 # SPDX-FileCopyrightText: 2019 Kevin J. Walters for Adafruit Industries
 #
 # SPDX-License-Identifier: MIT
+# pylint: enable=invalid-name
 
 import unittest
-from unittest.mock import Mock, MagicMock
 
 
 import os
 
 verbose = int(os.getenv("TESTVERBOSE", "2"))
 
+# pylint: disable=wrong-import-position
 # adafruit_midi had an import usb_midi
 import sys
 
@@ -22,21 +24,17 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 import adafruit_midi
 
 # Full monty
-from adafruit_midi.channel_pressure import ChannelPressure
-from adafruit_midi.control_change import ControlChange
 from adafruit_midi.note_off import NoteOff
 from adafruit_midi.note_on import NoteOn
-from adafruit_midi.pitch_bend import PitchBend
-from adafruit_midi.polyphonic_key_pressure import PolyphonicKeyPressure
-from adafruit_midi.program_change import ProgramChange
-from adafruit_midi.start import Start
-from adafruit_midi.stop import Stop
 from adafruit_midi.system_exclusive import SystemExclusive
-from adafruit_midi.timing_clock import TimingClock
 
+# pylint: enable=wrong-import-position
 
+# pylint: disable=invalid-name
 class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
-    def test_NoteOn_basic(self):
+    # pylint: enable=invalid-name
+    def test_NoteOn_basic(self):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         data = bytes([0x90, 0x30, 0x7F])
         ichannel = 0
 
@@ -51,7 +49,8 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(skipped, 0)
         self.assertEqual(msg.channel, 0)
 
-    def test_NoteOn_awaitingthirdbyte(self):
+    def test_NoteOn_awaitingthirdbyte(self):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         data = bytes([0x90, 0x30])
         ichannel = 0
 
@@ -71,7 +70,8 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         )
         self.assertEqual(skipped, 0)
 
-    def test_NoteOn_predatajunk(self):
+    def test_NoteOn_predatajunk(self):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         data = bytes([0x20, 0x64, 0x90, 0x30, 0x32])
         ichannel = 0
 
@@ -90,7 +90,8 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(skipped, 2)
         self.assertEqual(msg.channel, 0)
 
-    def test_NoteOn_prepartialsysex(self):
+    def test_NoteOn_prepartialsysex(self):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         data = bytes([0x01, 0x02, 0x03, 0x04, 0xF7, 0x90, 0x30, 0x32])
         ichannel = 0
 
@@ -118,7 +119,7 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertIsInstance(
             msg,
             NoteOn,
-            "NoteOn is expected if SystemExclusive is loaded otherwise it would be MIDIUnknownEvent",
+            "NoteOn is expected if SystemExclusive is loaded otherwise it'd be MIDIUnknownEvent",
         )
         self.assertEqual(msg.note, 0x30)
         self.assertEqual(msg.velocity, 0x32)
@@ -126,7 +127,8 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(skipped, 0)
         self.assertEqual(msg.channel, 0)
 
-    def test_NoteOn_postNoteOn(self):
+    def test_NoteOn_postNoteOn(self):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         data = bytes([0x90 | 0x08, 0x30, 0x7F, 0x90 | 0x08, 0x37, 0x64])
         ichannel = 8
 
@@ -141,7 +143,8 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(skipped, 0)
         self.assertEqual(msg.channel, 8)
 
-    def test_NoteOn_postpartialNoteOn(self):
+    def test_NoteOn_postpartialNoteOn(self):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         data = bytes([0x90, 0x30, 0x7F, 0x90, 0x37])
         ichannel = 0
 
@@ -156,7 +159,8 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(skipped, 0)
         self.assertEqual(msg.channel, 0)
 
-    def test_NoteOn_preotherchannel(self):
+    def test_NoteOn_preotherchannel(self):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         data = bytes([0x90 | 0x05, 0x30, 0x7F, 0x90 | 0x03, 0x37, 0x64])
         ichannel = 3
 
@@ -171,7 +175,10 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(skipped, 0)
         self.assertEqual(msg.channel, 3)
 
-    def test_NoteOn_preotherchannelplusintermediatejunk(self):
+    def test_NoteOn_preotherchannelplusintermediatejunk(
+        self,
+    ):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         data = bytes([0x90 | 0x05, 0x30, 0x7F, 0x00, 0x00, 0x90 | 0x03, 0x37, 0x64])
         ichannel = 3
 
@@ -188,7 +195,8 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(skipped, 0)
         self.assertEqual(msg.channel, 3)
 
-    def test_NoteOn_wrongchannel(self):
+    def test_NoteOn_wrongchannel(self):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         data = bytes([0x95, 0x30, 0x7F])
         ichannel = 3
 
@@ -200,7 +208,8 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(msgendidxplusone, 3, "wrong channel message discarded")
         self.assertEqual(skipped, 0)
 
-    def test_NoteOn_partialandpreotherchannel1(self):
+    def test_NoteOn_partialandpreotherchannel1(self):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         data = bytes([0x95, 0x30, 0x7F, 0x93])
         ichannel = 3
 
@@ -214,7 +223,8 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         )
         self.assertEqual(skipped, 0)
 
-    def test_NoteOn_partialandpreotherchannel2(self):
+    def test_NoteOn_partialandpreotherchannel2(self):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         data = bytes([0x95, 0x30, 0x7F, 0x93, 0x37])
         ichannel = 3
 
@@ -228,7 +238,8 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         )
         self.assertEqual(skipped, 0)
 
-    def test_NoteOn_constructor_int(self):
+    def test_NoteOn_constructor_int(self):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         object1 = NoteOn(60, 0x7F)
 
         self.assertEqual(object1.note, 60)
@@ -253,7 +264,8 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(object4.velocity, 127)
         self.assertIsNone(object4.channel)
 
-    def test_SystemExclusive_NoteOn(self):
+    def test_SystemExclusive_NoteOn(self):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         data = bytes([0xF0, 0x42, 0x01, 0x02, 0x03, 0x04, 0xF7, 0x90 | 14, 0x30, 0x60])
         ichannel = 14
 
@@ -281,7 +293,10 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(skipped, 0)
         self.assertEqual(msg.channel, 14)
 
-    def test_SystemExclusive_NoteOn_premalterminatedsysex(self):
+    def test_SystemExclusive_NoteOn_premalterminatedsysex(
+        self,
+    ):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         data = bytes([0xF0, 0x42, 0x01, 0x02, 0x03, 0x04, 0xF0, 0x90, 0x30, 0x32])
         ichannel = 0
 
@@ -296,7 +311,8 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
             skipped, 0, "If SystemExclusive class is imported then this must be 0"
         )
 
-    def test_Unknown_SinglebyteStatus(self):
+    def test_Unknown_SinglebyteStatus(self):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         data = bytes([0xFD])
         ichannel = 0
 
@@ -309,7 +325,8 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(skipped, 0)
         self.assertIsNone(msg.channel)
 
-    def test_Empty(self):
+    def test_Empty(self):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         data = bytes([])
         ichannel = 0
 
@@ -322,8 +339,11 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(skipped, 0)
 
 
-class Test_MIDIMessage_NoteOn_constructor(unittest.TestCase):
-    def test_NoteOn_constructor_string(self):
+class Test_MIDIMessage_NoteOn_constructor(
+    unittest.TestCase
+):  # pylint: disable=invalid-name
+    def test_NoteOn_constructor_string(self):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         object1 = NoteOn("C4", 0x64)
         self.assertEqual(object1.note, 60)
         self.assertEqual(object1.velocity, 0x64)
@@ -336,35 +356,39 @@ class Test_MIDIMessage_NoteOn_constructor(unittest.TestCase):
         self.assertEqual(object3.note, 61)
         self.assertEqual(object3.velocity, 0)
 
-    def test_NoteOn_constructor_valueerror1(self):
+    def test_NoteOn_constructor_valueerror1(self):  # pylint: disable=invalid-name
         with self.assertRaises(ValueError):
             NoteOn(60, 0x80)  # pylint is happier if return value not stored
 
-    def test_NoteOn_constructor_valueerror2(self):
+    def test_NoteOn_constructor_valueerror2(self):  # pylint: disable=invalid-name
         with self.assertRaises(ValueError):
             NoteOn(-1, 0x7F)
 
-    def test_NoteOn_constructor_valueerror3(self):
+    def test_NoteOn_constructor_valueerror3(self):  # pylint: disable=invalid-name
         with self.assertRaises(ValueError):
             NoteOn(128, 0x7F)
 
-    def test_NoteOn_constructor_upperrange1(self):
+    def test_NoteOn_constructor_upperrange1(self):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         object1 = NoteOn("G9", 0x7F)
         self.assertEqual(object1.note, 127)
         self.assertEqual(object1.velocity, 0x7F)
 
-    def test_NoteOn_constructor_upperrange2(self):
+    def test_NoteOn_constructor_upperrange2(self):  # pylint: disable=invalid-name
         with self.assertRaises(ValueError):
             NoteOn("G#9", 0x7F)  # just above max note
 
-    def test_NoteOn_constructor_bogusstring(self):
+    def test_NoteOn_constructor_bogusstring(self):  # pylint: disable=invalid-name
         with self.assertRaises(ValueError):
             NoteOn("CC4", 0x7F)
 
 
-class Test_MIDIMessage_NoteOff_constructor(unittest.TestCase):
+class Test_MIDIMessage_NoteOff_constructor(
+    unittest.TestCase
+):  # pylint: disable=invalid-name
     # mostly cut and paste from NoteOn above
-    def test_NoteOff_constructor_string(self):
+    def test_NoteOff_constructor_string(self):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         object1 = NoteOff("C4", 0x64)
         self.assertEqual(object1.note, 60)
         self.assertEqual(object1.velocity, 0x64)
@@ -381,28 +405,29 @@ class Test_MIDIMessage_NoteOff_constructor(unittest.TestCase):
         self.assertEqual(object4.note, 61)
         self.assertEqual(object4.velocity, 0)
 
-    def test_NoteOff_constructor_valueerror1(self):
+    def test_NoteOff_constructor_valueerror1(self):  # pylint: disable=invalid-name
         with self.assertRaises(ValueError):
             NoteOff(60, 0x80)
 
-    def test_NoteOff_constructor_valueerror2(self):
+    def test_NoteOff_constructor_valueerror2(self):  # pylint: disable=invalid-name
         with self.assertRaises(ValueError):
             NoteOff(-1, 0x7F)
 
-    def test_NoteOff_constructor_valueerror3(self):
+    def test_NoteOff_constructor_valueerror3(self):  # pylint: disable=invalid-name
         with self.assertRaises(ValueError):
             NoteOff(128, 0x7F)
 
-    def test_NoteOff_constructor_upperrange1(self):
+    def test_NoteOff_constructor_upperrange1(self):  # pylint: disable=invalid-name
+        # pylint: enable=invalid-name
         object1 = NoteOff("G9", 0x7F)
         self.assertEqual(object1.note, 127)
         self.assertEqual(object1.velocity, 0x7F)
 
-    def test_NoteOff_constructor_upperrange2(self):
+    def test_NoteOff_constructor_upperrange2(self):  # pylint: disable=invalid-name
         with self.assertRaises(ValueError):
             NoteOff("G#9", 0x7F)  # just above max note
 
-    def test_NoteOff_constructor_bogusstring(self):
+    def test_NoteOff_constructor_bogusstring(self):  # pylint: disable=invalid-name
         with self.assertRaises(ValueError):
             NoteOff("CC4", 0x7F)
 

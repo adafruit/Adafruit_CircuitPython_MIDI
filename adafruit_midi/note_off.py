@@ -22,7 +22,7 @@ __version__ = "0.0.0-auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 
-class NoteOff(MIDIMessage):
+class NoteOff(MIDIMessage):  # pylint: disable=duplicate-code
     """Note Off Change MIDI message.
 
     :param note: The note (key) number either as an ``int`` (0-127) or a
@@ -36,15 +36,19 @@ class NoteOff(MIDIMessage):
     LENGTH = 3
 
     def __init__(self, note, velocity=0, *, channel=None):
-        self.note = note_parser(note)
-        self.velocity = velocity
+        self._note = note_parser(note)
+        self._velocity = velocity
         super().__init__(channel=channel)
-        if not 0 <= self.note <= 127 or not 0 <= self.velocity <= 127:
+        if not 0 <= self._note <= 127 or not 0 <= self._velocity <= 127:
             raise self._EX_VALUEERROR_OOR
 
     def __bytes__(self):
         return bytes(
-            [self._STATUS | (self.channel & self.CHANNELMASK), self.note, self.velocity]
+            [
+                self._STATUS | (self.channel & self.CHANNELMASK),
+                self._note,
+                self._velocity,
+            ]
         )
 
     @classmethod
