@@ -1,3 +1,7 @@
+# SPDX-FileCopyrightText: 2021 Mark Komus for Adafruit Industries
+#
+# SPDX-License-Identifier: MIT
+
 # The MIT License (MIT)
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
