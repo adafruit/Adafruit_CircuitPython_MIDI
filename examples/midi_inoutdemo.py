@@ -36,7 +36,7 @@ print("Midi Demo in and out")
 
 # Convert channel numbers at the presentation layer to the ones musicians use
 print("Default output channel:", midi.out_channel + 1)
-print("Listening on input channels:", tuple([c + 1 for c in midi.in_channel]))
+print("Listening on input channels:", tuple(c + 1 for c in midi.in_channel))
 
 major_chord = [0, 4, 7]
 while True:
