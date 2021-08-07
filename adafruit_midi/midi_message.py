@@ -89,7 +89,9 @@ class MIDIMessage:
     ENDSTATUS = None
 
     # Commonly used exceptions to save memory
-    _EX_VALUEERROR_OOR = ValueError("Out of range")
+    @staticmethod
+    def _raise_valueerror_oor():
+        raise ValueError("Out of range")
 
     # Each element is ((status, mask), class)
     # order is more specific masks first

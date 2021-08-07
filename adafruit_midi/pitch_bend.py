@@ -37,7 +37,7 @@ class PitchBend(MIDIMessage):
         self.pitch_bend = pitch_bend
         super().__init__(channel=channel)
         if not 0 <= self.pitch_bend <= 16383:
-            raise self._EX_VALUEERROR_OOR
+            self._raise_valueerror_oor()
 
     def __bytes__(self):
         return bytes(
