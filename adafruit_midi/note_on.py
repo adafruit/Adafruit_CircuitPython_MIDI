@@ -40,7 +40,7 @@ class NoteOn(MIDIMessage):
         self.velocity = velocity
         super().__init__(channel=channel)
         if not 0 <= self.note <= 127 or not 0 <= self.velocity <= 127:
-            raise self._EX_VALUEERROR_OOR
+            self._raise_valueerror_oor()
 
     def __bytes__(self):
         return bytes(

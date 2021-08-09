@@ -48,22 +48,19 @@ class MtcQuarterFrame(MIDIMessage):
         self.value = value
         super().__init__()
         if not 0 <= self.type <= 7 or not 0 <= self.value <= 0x0F:
-            raise self._EX_VALUEERROR_OOR
+            self._raise_valueerror_oor()
 
     def __bytes__(self):
         return bytes(
             [
                 self._STATUS,
-                (self.type << 4) + self.value  # Assemble low and high nibbles
+                (self.type << 4) + self.value,  # Assemble low and high nibbles
             ]
         )
 
     @classmethod
     def from_bytes(cls, msg_bytes):
-        return cls(
-            msg_bytes[1] >> 4,  # High nibble
-            msg_bytes[1] & 15  # Low nibble
-        )
+        return cls(msg_bytes[1] >> 4, msg_bytes[1] & 15)  # High nibble  # Low nibble
 
 
 MtcQuarterFrame.register_message_type()
