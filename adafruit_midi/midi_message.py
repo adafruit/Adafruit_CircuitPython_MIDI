@@ -306,7 +306,7 @@ class MIDIUnknownEvent(MIDIMessage):
 class MIDIBadEvent(MIDIMessage):
     """A bad MIDI message, one that could not be parsed/constructed.
 
-    :param list data: The MIDI status including any embedded channel number
+    :param list msg_bytes: The MIDI status including any embedded channel number
         and associated subsequent data bytes.
     :param Exception exception: The exception used to store the repr() text representation.
 

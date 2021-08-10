@@ -13,7 +13,16 @@
 .. automodule:: adafruit_midi.control_change
       :members:
 
+.. automodule:: adafruit_midi.control_change_values
+      :members:
+
+.. automodule:: adafruit_midi.midi_continue
+      :members:
+
 .. automodule:: adafruit_midi.midi_message
+      :members:
+
+.. automodule:: adafruit_midi.mtc_quarter_frame
       :members:
 
 .. automodule:: adafruit_midi.note_off
