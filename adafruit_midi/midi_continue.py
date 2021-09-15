@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 
 """
-`adafruit_midi.continue`
+`adafruit_midi.midi_continue`
 ================================================================================
 
 Continue MIDI message.

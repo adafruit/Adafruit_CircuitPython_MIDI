@@ -28,14 +28,16 @@ class MtcQuarterFrame(MIDIMessage):
     """MIDI Time Code (MTC) Quarter Frame message.
 
     :param msgtype: The quarter frame message type:
-        - 0: Frame count LS nibble
-        - 1: Frame count MS nibble
-        - 2: Seconds count LS nibble
-        - 3: Seconds count MS nibble
-        - 4: Minutes count LS nibble
-        - 5: Minutes count MS nibble
-        - 6: Hours count LS nibble
-        - 7: Hours count MS nibble and SMPTE Type
+
+        0. Frame count LS nibble
+        1. Frame count MS nibble
+        2. Seconds count LS nibble
+        3. Seconds count MS nibble
+        4. Minutes count LS nibble
+        5. Minutes count MS nibble
+        6. Hours count LS nibble
+        7. Hours count MS nibble and SMPTE Type
+
     :param value: The quarter frame value for the specified type.
     """
 
