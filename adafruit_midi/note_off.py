@@ -37,6 +37,7 @@ class NoteOff(MIDIMessage):  # pylint: disable=duplicate-code
 
     def __init__(self, note, velocity=0, *, channel=None):
         self.note = note_parser(note)
+        """ self.note: key, either int (0-127) or string that will be turned off """
         self._velocity = velocity
         super().__init__(channel=channel)
         if not 0 <= self.note <= 127 or not 0 <= self._velocity <= 127:
