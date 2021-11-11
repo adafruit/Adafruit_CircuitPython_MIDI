@@ -111,7 +111,7 @@ class MIDIMessage:
     @channel.setter
     def channel(self, channel):
         if channel is not None and not 0 <= channel <= 15:
-            raise "Channel must be 0-15 or None"
+            raise "Channel must be 0-15 or None"  # pylint: disable=raising-bad-type
         self._channel = channel
 
     @classmethod
