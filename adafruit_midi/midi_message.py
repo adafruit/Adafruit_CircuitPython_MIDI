@@ -111,7 +111,7 @@ class MIDIMessage:
     @channel.setter
     def channel(self, channel):
         if channel is not None and not 0 <= channel <= 15:
-            raise "Channel must be 0-15 or None"
+            raise ValueError("Channel must be 0-15 or None")
         self._channel = channel
 
     @classmethod
