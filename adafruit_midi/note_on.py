@@ -37,7 +37,9 @@ class NoteOn(MIDIMessage):
 
     def __init__(self, note, velocity=127, *, channel=None):
         self.note = note_parser(note)
+        """Key, either int (0-127) or string that will be turned on """
         self.velocity = velocity
+        """Strike velocity, int (0-127); 0 is equivalent to Note Off """
         super().__init__(channel=channel)
         if not 0 <= self.note <= 127 or not 0 <= self.velocity <= 127:
             self._raise_valueerror_oor()
