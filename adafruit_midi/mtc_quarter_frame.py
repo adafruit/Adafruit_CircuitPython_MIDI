@@ -20,7 +20,7 @@ Based upon the official MMA0001 / RP004 / RP008 v4.2.1 MIDI Time Code Specificat
 
 from adafruit_midi.midi_message import MIDIMessage
 
-__version__ = "0.0.0-auto.0"
+__version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 
