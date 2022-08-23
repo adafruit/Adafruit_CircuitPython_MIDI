@@ -44,8 +44,14 @@ master_doc = "index"
 
 # General information about the project.
 project = "Adafruit MIDI Library"
+creation_year = "2019"
 current_year = str(datetime.datetime.now().year)
-copyright = current_year + " Ladyada & Kevin J. Walters"
+year_duration = (
+    current_year
+    if current_year == creation_year
+    else creation_year + " - " + current_year
+)
+copyright = year_duration + " Ladyada & Kevin J. Walters"
 author = "Ladyada & Kevin J. Walters"
 
 # The version info for the project you're documenting, acts as replacement for
