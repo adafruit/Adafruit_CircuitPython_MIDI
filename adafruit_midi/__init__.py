@@ -158,7 +158,9 @@ class MIDI:
             data = bytearray()
             for each_msg in msg:
                 each_msg.channel = channel
-                data.extend(each_msg.__bytes__())  # pylint: disable=unnecessary-dunder-call
+                data.extend(
+                    each_msg.__bytes__()  # pylint: disable=unnecessary-dunder-call
+                )
 
         self._send(data, len(data))
 
