@@ -1,8 +1,8 @@
-# pylint: disable=invalid-name
 # SPDX-FileCopyrightText: 2019 Kevin J. Walters for Adafruit Industries
 #
 # SPDX-License-Identifier: MIT
-# pylint: enable=invalid-name
+
+# pylint: disable=invalid-name
 
 import unittest
 from unittest.mock import Mock, call
@@ -37,7 +37,6 @@ import adafruit_midi
 
 # For loopback/echo tests
 def MIDI_mocked_both_loopback(in_c, out_c):  # pylint: disable=invalid-name
-    # pylint: enable=invalid-name
     usb_data = bytearray()
 
     def write(buffer, length):
@@ -61,7 +60,6 @@ def MIDI_mocked_both_loopback(in_c, out_c):  # pylint: disable=invalid-name
 
 
 def MIDI_mocked_receive(in_c, data, read_sizes):  # pylint: disable=invalid-name
-    # pylint: enable=invalid-name
     usb_data = bytearray(data)
     chunks = read_sizes
     chunk_idx = 0
@@ -101,7 +99,6 @@ class Test_MIDI_constructor(unittest.TestCase):  # pylint: disable=invalid-name
 class Test_MIDI(unittest.TestCase):
     # pylint: disable=too-many-branches
     def test_captured_data_one_byte_reads(self):  # pylint: disable=invalid-name
-        # pylint: enable=invalid-name
         channel = 0
         # From an M-Audio AXIOM controller
         raw_data = bytearray(
@@ -173,7 +170,6 @@ class Test_MIDI(unittest.TestCase):
             self.assertIsNone(msg)
 
     def test_unknown_before_NoteOn(self):  # pylint: disable=invalid-name
-        # pylint: enable=invalid-name
         channel = 0
         # From an M-Audio AXIOM controller
         raw_data = bytes(
@@ -184,7 +180,7 @@ class Test_MIDI(unittest.TestCase):
         ) + bytes(NoteOn("C5", 0x7F, channel=channel))
         midi = MIDI_mocked_receive(channel, raw_data, [2, 2, 1, 1, 3])
 
-        for unused in range(4):  # pylint: disable=unused-variable
+        for _ in range(4):
             msg = midi.receive()
             self.assertIsInstance(msg, adafruit_midi.midi_message.MIDIUnknownEvent)
             self.assertIsNone(msg.channel)
@@ -197,7 +193,6 @@ class Test_MIDI(unittest.TestCase):
 
     # See https://github.com/adafruit/Adafruit_CircuitPython_MIDI/issues/8
     def test_running_status_when_implemented(self):  # pylint: disable=invalid-name
-        # pylint: enable=invalid-name
         channel = 8
         raw_data = (
             bytes(NoteOn("C5", 0x7F, channel=channel))
@@ -210,7 +205,6 @@ class Test_MIDI(unittest.TestCase):
         # self.assertEqual(TOFINISH, WHENIMPLEMENTED)
 
     def test_somegood_somemissing_databytes(self):  # pylint: disable=invalid-name
-        # pylint: enable=invalid-name
         channel = 8
         raw_data = (
             bytes(NoteOn("C5", 0x7F, channel=channel))
@@ -468,7 +462,6 @@ class Test_MIDI_send(unittest.TestCase):
         nextcall += 1
 
     def test_termination_with_random_data(self):  # pylint: disable=invalid-name
-        # pylint: enable=invalid-name
         """Test with a random stream of bytes to ensure that the parsing code
         termates and returns, i.e. does not go into any infinite loops.
         """
