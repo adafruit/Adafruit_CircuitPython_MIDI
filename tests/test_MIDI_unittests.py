@@ -184,7 +184,7 @@ class Test_MIDI(unittest.TestCase):
         ) + bytes(NoteOn("C5", 0x7F, channel=channel))
         midi = MIDI_mocked_receive(channel, raw_data, [2, 2, 1, 1, 3])
 
-        for unused in range(4):  # pylint: disable=unused-variable
+        for _ in range(4):
             msg = midi.receive()
             self.assertIsInstance(msg, adafruit_midi.midi_message.MIDIUnknownEvent)
             self.assertIsNone(msg.channel)
