@@ -25,6 +25,10 @@ Implementation Notes
   https://github.com/adafruit/circuitpython/releases
 
 """
+try:
+    from typing import Union, Tuple, Any, List, Optional, Dict
+except ImportError:
+    pass
 
 from .midi_message import MIDIMessage
 
@@ -54,13 +58,13 @@ class MIDI:
 
     def __init__(
         self,
-        midi_in=None,
-        midi_out=None,
+        midi_in: Optional[Any] = None,
+        midi_out: Optional[Any] = None,
         *,
-        in_channel=None,
-        out_channel=0,
-        in_buf_size=30,
-        debug=False
+        in_channel: Optional[Union[int, Tuple[int, ...]]] = None,
+        out_channel: int = 0,
+        in_buf_size: int = 30,
+        debug: bool = False
     ):
         if midi_in is None and midi_out is None:
             raise ValueError("No midi_in or midi_out provided")
@@ -78,7 +82,7 @@ class MIDI:
         self._skipped_bytes = 0
 
     @property
-    def in_channel(self):
+    def in_channel(self) -> Optional[Union[int, Tuple[int, ...]]]:
         """The incoming MIDI channel. Must be 0-15. Correlates to MIDI channels 1-16, e.g.
         ``in_channel = 3`` will listen on MIDI channel 4.
         Can also listen on multiple channels, e.g. ``in_channel  = (0,1,2)``
@@ -87,7 +91,7 @@ class MIDI:
         return self._in_channel
 
     @in_channel.setter
-    def in_channel(self, channel):
+    def in_channel(self, channel: Optional[Union[str, int, Tuple[int, ...]]]) -> None:
         if channel is None or channel == "ALL":
             self._in_channel = tuple(range(16))
         elif isinstance(channel, int) and 0 <= channel <= 15:
@@ -98,18 +102,19 @@ class MIDI:
             raise RuntimeError("Invalid input channel")
 
     @property
-    def out_channel(self):
+    def out_channel(self) -> int:
         """The outgoing MIDI channel. Must be 0-15. Correlates to MIDI channels 1-16, e.g.
         ``out_channel = 3`` will send to MIDI channel 4. Default is 0 (MIDI channel 1)."""
         return self._out_channel
 
     @out_channel.setter
-    def out_channel(self, channel):
+    def out_channel(self, channel: Optional[int]) -> None:
+        assert channel is not None
         if not 0 <= channel <= 15:
             raise RuntimeError("Invalid output channel")
         self._out_channel = channel
 
-    def receive(self):
+    def receive(self) -> Optional[MIDIMessage]:
         """Read messages from MIDI port, store them in internal read buffer, then parse that data
         and return the first MIDI message (event).
         This maintains the blocking characteristics of the midi_in port.
@@ -120,6 +125,7 @@ class MIDI:
         # If the buffer here is not full then read as much as we can fit from
         # the input port
         if len(self._in_buf) < self._in_buf_size:
+            assert self._midi_in is not None
             bytes_in = self._midi_in.read(self._in_buf_size - len(self._in_buf))
             if bytes_in:
                 if self._debug:
@@ -140,7 +146,7 @@ class MIDI:
         # msg could still be None at this point, e.g. in middle of monster SysEx
         return msg
 
-    def send(self, msg, channel=None):
+    def send(self, msg: MIDIMessage, channel: Optional[int] = None) -> None:
         """Sends a MIDI message.
 
         :param msg: Either a MIDIMessage object or a sequence (list) of MIDIMessage objects.
@@ -164,7 +170,8 @@ class MIDI:
 
         self._send(data, len(data))
 
-    def _send(self, packet, num):
+    def _send(self, packet: bytes, num: int) -> None:
         if self._debug:
             print("Sending: ", [hex(i) for i in packet[:num]])
+        assert self._midi_out is not None
         self._midi_out.write(packet, num)
