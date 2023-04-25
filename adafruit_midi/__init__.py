@@ -104,7 +104,8 @@ class MIDI:
     @property
     def out_channel(self) -> int:
         """The outgoing MIDI channel. Must be 0-15. Correlates to MIDI channels 1-16, e.g.
-        ``out_channel = 3`` will send to MIDI channel 4. Default is 0 (MIDI channel 1)."""
+        ``out_channel = 3`` will send to MIDI channel 4. Default is 0 (MIDI channel 1).
+        """
         return self._out_channel
 
     @out_channel.setter

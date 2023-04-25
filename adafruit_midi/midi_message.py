@@ -307,7 +307,7 @@ class MIDIMessage:
     # Returns the new object.
     # pylint: disable=unused-argument
     @classmethod
-    def from_bytes(cls, msg_bytes: bytes) -> 'MIDIMessage':
+    def from_bytes(cls, msg_bytes: bytes) -> "MIDIMessage":
         """Creates an object from the byte stream of the wire protocol
         representation of the MIDI message."""
         return cls()
