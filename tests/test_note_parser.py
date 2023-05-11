@@ -69,7 +69,6 @@ class Test_note_parser(unittest.TestCase):
         self.assertEqual(note_parser("A4"), 69)
 
     def test_bad_text(self):
-
         for text_note in ["H", "H4", "asdfasdfasdf", "000", "999"]:
             with self.assertRaises(ValueError):
                 note_parser(text_note)

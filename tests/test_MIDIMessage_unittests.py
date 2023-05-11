@@ -30,6 +30,7 @@ from adafruit_midi.system_exclusive import SystemExclusive
 
 # pylint: enable=wrong-import-position
 
+
 # pylint: disable=invalid-name
 class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
     def test_NoteOn_basic(self):  # pylint: disable=invalid-name
