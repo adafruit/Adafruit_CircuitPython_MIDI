@@ -34,6 +34,6 @@ class TimingClock(MIDIMessage):
     _STATUS = 0xF8
     _STATUSMASK = 0xFF
     LENGTH = 1
-
+    _slots = []
 
 TimingClock.register_message_type()

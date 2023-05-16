@@ -28,6 +28,6 @@ class Stop(MIDIMessage):
     _STATUS = 0xFC
     _STATUSMASK = 0xFF
     LENGTH = 1
-
+    _message_slots=[]
 
 Stop.register_message_type()

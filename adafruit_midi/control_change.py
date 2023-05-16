@@ -30,6 +30,7 @@ class ControlChange(MIDIMessage):
 
     """
 
+    _message_slots = ['control', 'value', 'channel']
     _STATUS = 0xB0
     _STATUSMASK = 0xF0
     LENGTH = 3

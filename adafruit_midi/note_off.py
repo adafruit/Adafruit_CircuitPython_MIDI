@@ -31,6 +31,7 @@ class NoteOff(MIDIMessage):  # pylint: disable=duplicate-code
 
     """
 
+    _message_slots = ['note', 'velocity', 'channel']
     _STATUS = 0x80
     _STATUSMASK = 0xF0
     LENGTH = 3

@@ -29,6 +29,7 @@ class PitchBend(MIDIMessage):
         bend from 0 through 8192 (midpoint, no bend) to 16383.
     """
 
+    _message_slots = ['pitch_bend', 'channel']
     _STATUS = 0xE0
     _STATUSMASK = 0xF0
     LENGTH = 3

@@ -28,6 +28,7 @@ class ProgramChange(MIDIMessage):
     :param int patch: The new program/patch number to use, 0-127.
     """
 
+    _message_slots = ['patch', 'channel']
     _STATUS = 0xC0
     _STATUSMASK = 0xF0
     LENGTH = 2
