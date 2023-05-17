@@ -41,7 +41,7 @@ class MtcQuarterFrame(MIDIMessage):
     :param value: The quarter frame value for the specified type.
     """
 
-    _message_slots = ['msgtype', 'value']
+    _message_slots = ["msgtype", "value"]
 
     _STATUS = 0xF1
     _STATUSMASK = 0xFF

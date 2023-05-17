@@ -28,7 +28,7 @@ class ChannelPressure(MIDIMessage):
     :param int pressure: The pressure, 0-127.
     """
 
-    _message_slots = ['pressure', 'channel']
+    _message_slots = ["pressure", "channel"]
     _STATUS = 0xD0
     _STATUSMASK = 0xF0
     LENGTH = 2

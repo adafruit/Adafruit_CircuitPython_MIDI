@@ -4,10 +4,8 @@
 
 # pylint: disable=invalid-name
 
-import unittest
-
-
 import os
+import unittest
 
 verbose = int(os.getenv("TESTVERBOSE", "2"))
 

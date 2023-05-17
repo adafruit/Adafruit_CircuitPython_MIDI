@@ -36,4 +36,5 @@ class TimingClock(MIDIMessage):
     LENGTH = 1
     _slots = []
 
+
 TimingClock.register_message_type()

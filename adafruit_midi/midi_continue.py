@@ -24,6 +24,7 @@ __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 class Continue(MIDIMessage):
     """Continue MIDI message."""
+
     _message_slots = []
 
     _STATUS = 0xFB

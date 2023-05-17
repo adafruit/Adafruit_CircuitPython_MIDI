@@ -2,9 +2,8 @@
 #
 # SPDX-License-Identifier: MIT
 
-import unittest
-
 import os
+import unittest
 
 verbose = int(os.getenv("TESTVERBOSE", "2"))
 
