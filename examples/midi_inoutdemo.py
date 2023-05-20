@@ -6,6 +6,8 @@
 import usb_midi
 
 import adafruit_midi
+
+# pylint: disable=unused-import
 from adafruit_midi.channel_pressure import ChannelPressure
 from adafruit_midi.control_change import ControlChange
 from adafruit_midi.midi_message import MIDIUnknownEvent
@@ -17,8 +19,6 @@ from adafruit_midi.program_change import ProgramChange
 from adafruit_midi.start import Start
 from adafruit_midi.stop import Stop
 from adafruit_midi.system_exclusive import SystemExclusive
-
-# pylint: disable=unused-import
 from adafruit_midi.timing_clock import TimingClock
 
 # TimingClock is worth importing first if present as it
