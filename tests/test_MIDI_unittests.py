@@ -4,11 +4,10 @@
 
 # pylint: disable=invalid-name
 
+import os
+import random
 import unittest
 from unittest.mock import Mock, call
-
-import random
-import os
 
 verbose = int(os.getenv("TESTVERBOSE", "2"))
 
@@ -21,6 +20,9 @@ import sys
 # Borrowing the dhalbert/tannewt technique from adafruit/Adafruit_CircuitPython_Motor
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+# Import after messages - opposite to other test file
+import adafruit_midi
+
 # Full monty
 from adafruit_midi.channel_pressure import ChannelPressure
 from adafruit_midi.control_change import ControlChange
@@ -28,9 +30,6 @@ from adafruit_midi.note_off import NoteOff
 from adafruit_midi.note_on import NoteOn
 from adafruit_midi.pitch_bend import PitchBend
 from adafruit_midi.system_exclusive import SystemExclusive
-
-# Import after messages - opposite to other test file
-import adafruit_midi
 
 # pylint: enable=wrong-import-position
 

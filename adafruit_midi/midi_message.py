@@ -285,6 +285,20 @@ class MIDIMessage:
         representation of the MIDI message."""
         return cls()
 
+    def __str__(self):
+        """Print an instance"""
+        cls = self.__class__
+        if slots := getattr(cls, "_message_slots", None):
+            # pylint: disable=not-an-iterable
+            args = ", ".join(
+                f"{name}={repr(getattr(self, name, None))}" for name in slots
+            )
+        else:
+            args = "..."
+        return f"{self.__class__.__name__}({args})"
+
+    __repr__ = __str__
+
 
 # DO NOT try to register these messages
 class MIDIUnknownEvent(MIDIMessage):
@@ -296,6 +310,7 @@ class MIDIUnknownEvent(MIDIMessage):
     or because it is not imported.
     """
 
+    _message_slots = ["status"]
     LENGTH = -1
 
     def __init__(self, status):
@@ -315,6 +330,8 @@ class MIDIBadEvent(MIDIMessage):
     """
 
     LENGTH = -1
+
+    _message_slots = ["msg_bytes", "exception"]
 
     def __init__(self, msg_bytes, exception):
         self.data = bytes(msg_bytes)

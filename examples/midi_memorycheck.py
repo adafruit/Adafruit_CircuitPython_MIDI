@@ -10,9 +10,9 @@
 #
 # E:  8,21: Module 'gc' has no 'mem_free' member (no-member)
 
-import time
-import random
 import gc
+import random
+import time
 
 gc.collect()
 print(gc.mem_free())

@@ -31,6 +31,8 @@ class NoteOn(MIDIMessage):
         to a Note Off, defaults to 127.
     """
 
+    _message_slots = ["note", "velocity", "channel"]
+
     _STATUS = 0x90
     _STATUSMASK = 0xF0
     LENGTH = 3
