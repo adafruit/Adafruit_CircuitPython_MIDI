@@ -26,7 +26,7 @@ __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 try:
-    from typing import Union, Tuple, Any, List, Optional, Dict
+    from typing import Union, Tuple, Any, List, Optional
 except ImportError:
     pass
 
