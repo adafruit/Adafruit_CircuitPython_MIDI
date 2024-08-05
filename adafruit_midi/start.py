@@ -28,6 +28,7 @@ class Start(MIDIMessage):
     _STATUS = 0xFA
     _STATUSMASK = 0xFF
     LENGTH = 1
+    _message_slots = []
 
 
 Start.register_message_type()

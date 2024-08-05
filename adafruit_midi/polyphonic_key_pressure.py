@@ -30,6 +30,7 @@ class PolyphonicKeyPressure(MIDIMessage):
     :param int pressure: The pressure, 0-127.
     """
 
+    _message_slots = ["note", "pressure", "channel"]
     _STATUS = 0xA0
     _STATUSMASK = 0xF0
     LENGTH = 3

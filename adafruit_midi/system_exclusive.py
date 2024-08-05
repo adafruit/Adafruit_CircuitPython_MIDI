@@ -32,6 +32,7 @@ class SystemExclusive(MIDIMessage):
     This message can only be parsed if it fits within the input buffer in :class:MIDI.
     """
 
+    _message_slots = ["manufacturer_id", "data"]
     _STATUS = 0xF0
     _STATUSMASK = 0xFF
     LENGTH = -1

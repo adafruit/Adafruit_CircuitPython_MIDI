@@ -4,10 +4,8 @@
 
 # pylint: disable=invalid-name
 
-import unittest
-
-
 import os
+import unittest
 
 verbose = int(os.getenv("TESTVERBOSE", "2"))
 
@@ -29,6 +27,7 @@ from adafruit_midi.note_on import NoteOn
 from adafruit_midi.system_exclusive import SystemExclusive
 
 # pylint: enable=wrong-import-position
+
 
 # pylint: disable=invalid-name
 class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
