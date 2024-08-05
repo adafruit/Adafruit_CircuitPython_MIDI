@@ -132,13 +132,10 @@ class MIDIMessage:
         ### These must be inserted with more specific masks first
         insert_idx = len(MIDIMessage._statusandmask_to_class)
         for idx, m_type in enumerate(MIDIMessage._statusandmask_to_class):
-            assert cls._STATUSMASK is not None
             if cls._STATUSMASK > m_type[0][1]:
                 insert_idx = idx
                 break
 
-        assert cls._STATUS is not None
-        assert cls._STATUSMASK is not None
         MIDIMessage._statusandmask_to_class.insert(
             insert_idx, ((cls._STATUS, cls._STATUSMASK), cls)
         )
@@ -147,8 +144,8 @@ class MIDIMessage:
     @classmethod
     def _search_eom_status(
         cls,
-        buf: Dict[int, bool],
-        eom_status: bool,
+        buf: bytearray,
+        eom_status: Optional[int],
         msgstartidx: int,
         msgendidxplusone: int,
         endidx: int,
@@ -177,7 +174,7 @@ class MIDIMessage:
     @classmethod
     def _match_message_status(
         cls, buf: bytearray, msgstartidx: int, msgendidxplusone: int, endidx: int
-    ) -> Tuple[Optional[Any], bool, bool, bool, bool, int]:
+    ) -> Tuple[Optional[Any], int, bool, bool, bool, int]:
         msgclass = None
         status = buf[msgstartidx]
         known_msg = False
@@ -185,7 +182,6 @@ class MIDIMessage:
         bad_termination = False
 
         # Rummage through our list looking for a status match
-        assert msgclass is not None
         for status_mask, msgclass in MIDIMessage._statusandmask_to_class:
             masked_status = status & status_mask[1]
             if status_mask[0] == masked_status:
@@ -265,7 +261,6 @@ class MIDIMessage:
             channel_match_orna = True
             if complete_message and not bad_termination:
                 try:
-                    assert msgclass is not None
                     msg = msgclass.from_bytes(midibytes[msgstartidx:msgendidxplusone])
                     if msg.channel is not None:
                         channel_match_orna = channel_filter(msg.channel, channel_in)
@@ -299,7 +294,6 @@ class MIDIMessage:
     def __bytes__(self) -> bytes:
         """Return the ``bytes`` wire protocol representation of the object
         with channel number applied where appropriate."""
-        assert self._STATUS is not None
         return bytes([self._STATUS])
 
     # databytes value present to keep interface uniform but unused
@@ -312,7 +306,7 @@ class MIDIMessage:
         representation of the MIDI message."""
         return cls()
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Print an instance"""
         cls = self.__class__
         if slots := getattr(cls, "_message_slots", None):

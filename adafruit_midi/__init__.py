@@ -26,7 +26,7 @@ Implementation Notes
 
 """
 try:
-    from typing import Union, Tuple, Any, List, Optional, Dict
+    from typing import Union, Tuple, Any, List, Optional, Dict, BinaryIO
 except ImportError:
     pass
 
@@ -58,8 +58,8 @@ class MIDI:
 
     def __init__(
         self,
-        midi_in: Optional[Any] = None,
-        midi_out: Optional[Any] = None,
+        midi_in: Optional[BinaryIO] = None,
+        midi_out: Optional[BinaryIO] = None,
         *,
         in_channel: Optional[Union[int, Tuple[int, ...]]] = None,
         out_channel: int = 0,
@@ -109,8 +109,7 @@ class MIDI:
         return self._out_channel
 
     @out_channel.setter
-    def out_channel(self, channel: Optional[int]) -> None:
-        assert channel is not None
+    def out_channel(self, channel: int) -> None:
         if not 0 <= channel <= 15:
             raise RuntimeError("Invalid output channel")
         self._out_channel = channel
@@ -126,7 +125,6 @@ class MIDI:
         # If the buffer here is not full then read as much as we can fit from
         # the input port
         if len(self._in_buf) < self._in_buf_size:
-            assert self._midi_in is not None
             bytes_in = self._midi_in.read(self._in_buf_size - len(self._in_buf))
             if bytes_in:
                 if self._debug:
@@ -174,5 +172,4 @@ class MIDI:
     def _send(self, packet: bytes, num: int) -> None:
         if self._debug:
             print("Sending: ", [hex(i) for i in packet[:num]])
-        assert self._midi_out is not None
         self._midi_out.write(packet, num)
