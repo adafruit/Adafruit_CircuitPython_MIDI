@@ -7,6 +7,9 @@
 .. automodule:: adafruit_midi
    :members:
 
+.. automodule:: adafruit_midi.active_sensing
+    :members:
+
 .. automodule:: adafruit_midi.channel_pressure
       :members:
 
