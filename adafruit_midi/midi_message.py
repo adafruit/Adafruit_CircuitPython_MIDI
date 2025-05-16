@@ -26,7 +26,7 @@ __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 try:
-    from typing import Union, Tuple, Any, List, Optional
+    from typing import Any, List, Optional, Tuple, Union
 except ImportError:
     pass
 
@@ -35,9 +35,7 @@ except ImportError:
 NOTE_OFFSET = [21, 23, 12, 14, 16, 17, 19]
 
 
-def channel_filter(
-    channel: int, channel_spec: Optional[Union[int, Tuple[int, ...]]]
-) -> bool:
+def channel_filter(channel: int, channel_spec: Optional[Union[int, Tuple[int, ...]]]) -> bool:
     """
     Utility function to return True iff the given channel matches channel_spec.
     """
@@ -103,9 +101,7 @@ class MIDIMessage:
     # Each element is ((status, mask), class)
     # order is more specific masks first
     # Add better type hints for status, mask, class referenced above
-    _statusandmask_to_class: List[
-        Tuple[Tuple[Optional[bytes], Optional[int]], "MIDIMessage"]
-    ] = []
+    _statusandmask_to_class: List[Tuple[Tuple[Optional[bytes], Optional[int]], "MIDIMessage"]] = []
 
     def __init__(self, *, channel: Optional[int] = None) -> None:
         self._channel = channel  # dealing with pylint inadequacy
@@ -140,7 +136,6 @@ class MIDIMessage:
             insert_idx, ((cls._STATUS, cls._STATUSMASK), cls)
         )
 
-    # pylint: disable=too-many-arguments
     @classmethod
     def _search_eom_status(
         cls,
@@ -158,7 +153,6 @@ class MIDIMessage:
             # Look for a status byte
             # Second rule of the MIDI club is status bytes have MSB set
             if buf[msgendidxplusone] & 0x80:
-                # pylint: disable=simplifiable-if-statement
                 if buf[msgendidxplusone] == eom_status:
                     good_termination = True
                 else:
@@ -215,7 +209,6 @@ class MIDIMessage:
             msgendidxplusone,
         )
 
-    # pylint: disable=too-many-locals,too-many-branches
     @classmethod
     def from_message_bytes(
         cls, midibytes: bytearray, channel_in: Optional[Union[int, Tuple[int, ...]]]
@@ -255,9 +248,7 @@ class MIDIMessage:
                 complete_message,
                 bad_termination,
                 msgendidxplusone,
-            ) = cls._match_message_status(
-                midibytes, msgstartidx, msgendidxplusone, endidx
-            )
+            ) = cls._match_message_status(midibytes, msgstartidx, msgendidxplusone, endidx)
             channel_match_orna = True
             if complete_message and not bad_termination:
                 try:
@@ -299,7 +290,6 @@ class MIDIMessage:
     # databytes value present to keep interface uniform but unused
     # A default method for constructing message objects with no data.
     # Returns the new object.
-    # pylint: disable=unused-argument
     @classmethod
     def from_bytes(cls, msg_bytes: bytes) -> "MIDIMessage":
         """Creates an object from the byte stream of the wire protocol
@@ -310,10 +300,7 @@ class MIDIMessage:
         """Print an instance"""
         cls = self.__class__
         if slots := getattr(cls, "_message_slots", None):
-            # pylint: disable=not-an-iterable
-            args = ", ".join(
-                f"{name}={repr(getattr(self, name, None))}" for name in slots
-            )
+            args = ", ".join(f"{name}={repr(getattr(self, name, None))}" for name in slots)
         else:
             args = "..."
         return f"{self.__class__.__name__}({args})"

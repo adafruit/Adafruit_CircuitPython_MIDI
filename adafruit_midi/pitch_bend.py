@@ -51,9 +51,7 @@ class PitchBend(MIDIMessage):
 
     @classmethod
     def from_bytes(cls, msg_bytes):
-        return cls(
-            msg_bytes[2] << 7 | msg_bytes[1], channel=msg_bytes[0] & cls.CHANNELMASK
-        )
+        return cls(msg_bytes[2] << 7 | msg_bytes[1], channel=msg_bytes[0] & cls.CHANNELMASK)
 
 
 PitchBend.register_message_type()

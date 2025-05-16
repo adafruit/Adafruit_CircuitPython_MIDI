@@ -43,9 +43,7 @@ class PolyphonicKeyPressure(MIDIMessage):
             self._raise_valueerror_oor()
 
     def __bytes__(self):
-        return bytes(
-            [self._STATUS | (self.channel & self.CHANNELMASK), self.note, self.pressure]
-        )
+        return bytes([self._STATUS | (self.channel & self.CHANNELMASK), self.note, self.pressure])
 
     @classmethod
     def from_bytes(cls, msg_bytes):

@@ -2,8 +2,6 @@
 #
 # SPDX-License-Identifier: MIT
 
-# pylint: disable=invalid-name
-
 import os
 import random
 import unittest
@@ -11,7 +9,6 @@ from unittest.mock import Mock, call
 
 verbose = int(os.getenv("TESTVERBOSE", "2"))
 
-# pylint: disable=wrong-import-position
 # adafruit_midi had an import usb_midi
 import sys
 
@@ -31,11 +28,9 @@ from adafruit_midi.note_on import NoteOn
 from adafruit_midi.pitch_bend import PitchBend
 from adafruit_midi.system_exclusive import SystemExclusive
 
-# pylint: enable=wrong-import-position
-
 
 # For loopback/echo tests
-def MIDI_mocked_both_loopback(in_c, out_c):  # pylint: disable=invalid-name
+def MIDI_mocked_both_loopback(in_c, out_c):
     usb_data = bytearray()
 
     def write(buffer, length):
@@ -58,14 +53,13 @@ def MIDI_mocked_both_loopback(in_c, out_c):  # pylint: disable=invalid-name
     return midi
 
 
-def MIDI_mocked_receive(in_c, data, read_sizes):  # pylint: disable=invalid-name
+def MIDI_mocked_receive(in_c, data, read_sizes):
     usb_data = bytearray(data)
     chunks = read_sizes
     chunk_idx = 0
 
     def read(length):
         nonlocal usb_data, chunks, chunk_idx
-        # pylint:  disable=no-else-return
         if length != 0 and chunk_idx < len(chunks):
             # min() to ensure we only read what's asked for and present
             poppedbytes = usb_data[0 : min(length, chunks[chunk_idx])]
@@ -76,7 +70,7 @@ def MIDI_mocked_receive(in_c, data, read_sizes):  # pylint: disable=invalid-name
                 chunks[chunk_idx] -= len(poppedbytes)
             return bytes(poppedbytes)
         else:
-            return bytes()
+            return b""
 
     mockedportin = Mock()
     mockedportin.read = read
@@ -87,8 +81,7 @@ def MIDI_mocked_receive(in_c, data, read_sizes):  # pylint: disable=invalid-name
     return midi
 
 
-class Test_MIDI_constructor(unittest.TestCase):  # pylint: disable=invalid-name
-    # pylint: enable=invalid-name
+class Test_MIDI_constructor(unittest.TestCase):
     def test_no_inout(self):
         # constructor likes a bit of in out
         with self.assertRaises(ValueError):
@@ -96,8 +89,7 @@ class Test_MIDI_constructor(unittest.TestCase):  # pylint: disable=invalid-name
 
 
 class Test_MIDI(unittest.TestCase):
-    # pylint: disable=too-many-branches
-    def test_captured_data_one_byte_reads(self):  # pylint: disable=invalid-name
+    def test_captured_data_one_byte_reads(self):
         channel = 0
         # From an M-Audio AXIOM controller
         raw_data = bytearray(
@@ -110,7 +102,7 @@ class Test_MIDI(unittest.TestCase):
         )
         midi = MIDI_mocked_receive(channel, raw_data, [1] * len(raw_data))
 
-        for unused in range(100):  # pylint: disable=unused-variable
+        for unused in range(100):
             msg = midi.receive()
             if msg is not None:
                 break
@@ -121,7 +113,7 @@ class Test_MIDI(unittest.TestCase):
 
         # for loops currently absorb any Nones but could
         # be set to read precisely the expected number...
-        for unused in range(100):  # pylint: disable=unused-variable
+        for unused in range(100):
             msg = midi.receive()
             if msg is not None:
                 break
@@ -129,7 +121,7 @@ class Test_MIDI(unittest.TestCase):
         self.assertEqual(msg.pressure, 0x10)
         self.assertEqual(msg.channel, channel)
 
-        for unused in range(100):  # pylint: disable=unused-variable
+        for unused in range(100):
             msg = midi.receive()
             if msg is not None:
                 break
@@ -138,7 +130,7 @@ class Test_MIDI(unittest.TestCase):
         self.assertEqual(msg.velocity, 0x66)
         self.assertEqual(msg.channel, channel)
 
-        for unused in range(100):  # pylint: disable=unused-variable
+        for unused in range(100):
             msg = midi.receive()
             if msg is not None:
                 break
@@ -147,7 +139,7 @@ class Test_MIDI(unittest.TestCase):
         self.assertEqual(msg.value, 0x08)
         self.assertEqual(msg.channel, channel)
 
-        for unused in range(100):  # pylint: disable=unused-variable
+        for unused in range(100):
             msg = midi.receive()
             if msg is not None:
                 break
@@ -156,7 +148,7 @@ class Test_MIDI(unittest.TestCase):
         self.assertEqual(msg.velocity, 0x74)
         self.assertEqual(msg.channel, channel)
 
-        for unused in range(100):  # pylint: disable=unused-variable
+        for unused in range(100):
             msg = midi.receive()
             if msg is not None:
                 break
@@ -164,11 +156,11 @@ class Test_MIDI(unittest.TestCase):
         self.assertEqual(msg.pitch_bend, 8195)
         self.assertEqual(msg.channel, channel)
 
-        for unused in range(100):  # pylint: disable=unused-variable
+        for unused in range(100):
             msg = midi.receive()
             self.assertIsNone(msg)
 
-    def test_unknown_before_NoteOn(self):  # pylint: disable=invalid-name
+    def test_unknown_before_NoteOn(self):
         channel = 0
         # From an M-Audio AXIOM controller
         raw_data = bytes(
@@ -191,7 +183,7 @@ class Test_MIDI(unittest.TestCase):
         self.assertEqual(msg.channel, channel)
 
     # See https://github.com/adafruit/Adafruit_CircuitPython_MIDI/issues/8
-    def test_running_status_when_implemented(self):  # pylint: disable=invalid-name
+    def test_running_status_when_implemented(self):
         channel = 8
         raw_data = (
             bytes(NoteOn("C5", 0x7F, channel=channel))
@@ -200,10 +192,10 @@ class Test_MIDI(unittest.TestCase):
         )
 
         midi = MIDI_mocked_receive(channel, raw_data, [3 + 3 + 2 + 3 + 3])
-        self.assertIsInstance(midi, adafruit_midi.MIDI)  # silence pylint!
+        self.assertIsInstance(midi, adafruit_midi.MIDI)
         # self.assertEqual(TOFINISH, WHENIMPLEMENTED)
 
-    def test_somegood_somemissing_databytes(self):  # pylint: disable=invalid-name
+    def test_somegood_somemissing_databytes(self):
         channel = 8
         raw_data = (
             bytes(NoteOn("C5", 0x7F, channel=channel))
@@ -290,26 +282,23 @@ class Test_MIDI(unittest.TestCase):
         self.assertEqual(message.manufacturer_id, bytes([0x1F]))
         self.assertIsInstance(message.manufacturer_id, bytes)
 
-        # check this really is immutable (pylint also picks this up!)
+        # check this really is immutable
         with self.assertRaises(TypeError):
-            message.data[0] = 0  # pylint: disable=unsupported-assignment-operation
+            message.data[0] = 0
 
         self.assertEqual(message.data, bytes([100, 150, 200]))
         self.assertIsInstance(message.data, bytes)
 
-    # pylint: disable=too-many-locals
     def test_larger_than_buffer_sysex(self):
         channel = 0
         monster_data_len = 500
         raw_data = (
             bytes(NoteOn("C5", 0x7F, channel=channel))
-            + bytes(
-                SystemExclusive([0x02], [d & 0x7F for d in range(monster_data_len)])
-            )
+            + bytes(SystemExclusive([0x02], [d & 0x7F for d in range(monster_data_len)]))
             + bytes(NoteOn("D5", 0x7F, channel=channel))
         )
         midi = MIDI_mocked_receive(channel, raw_data, [len(raw_data)])
-        buffer_len = midi._in_buf_size  # pylint: disable=protected-access
+        buffer_len = midi._in_buf_size
         self.assertTrue(
             monster_data_len > buffer_len,
             "checking our SysEx truly is larger than buffer",
@@ -322,7 +311,6 @@ class Test_MIDI(unittest.TestCase):
         self.assertEqual(msg1.channel, channel)
 
         # (Ab)using python's rounding down for negative division
-        # pylint: disable=unused-variable
         for unused in range(-(-(1 + 1 + monster_data_len + 1) // buffer_len) - 1):
             msg2 = midi.receive()
             self.assertIsNone(msg2)
@@ -349,8 +337,7 @@ class Test_MIDI(unittest.TestCase):
         self.assertIsNone(msg6)
 
 
-# pylint does not like mock_calls - must be a better way to handle this?
-# pylint: disable=no-member
+# mock_calls handling
 class Test_MIDI_send(unittest.TestCase):
     def test_send_basic_single(self):
         # def printit(buffer, len):
@@ -363,48 +350,32 @@ class Test_MIDI_send(unittest.TestCase):
         # Test sending some NoteOn and NoteOff to various channels
         nextcall = 0
         midi.send(NoteOn(0x60, 0x7F))
-        self.assertEqual(
-            mockedportout.write.mock_calls[nextcall], call(b"\x92\x60\x7f", 3)
-        )
+        self.assertEqual(mockedportout.write.mock_calls[nextcall], call(b"\x92\x60\x7f", 3))
         nextcall += 1
         midi.send(NoteOn(0x64, 0x3F))
-        self.assertEqual(
-            mockedportout.write.mock_calls[nextcall], call(b"\x92\x64\x3f", 3)
-        )
+        self.assertEqual(mockedportout.write.mock_calls[nextcall], call(b"\x92\x64\x3f", 3))
         nextcall += 1
         midi.send(NoteOn(0x67, 0x1F))
-        self.assertEqual(
-            mockedportout.write.mock_calls[nextcall], call(b"\x92\x67\x1f", 3)
-        )
+        self.assertEqual(mockedportout.write.mock_calls[nextcall], call(b"\x92\x67\x1f", 3))
         nextcall += 1
 
         midi.send(NoteOn(0x60, 0x00))  # Alternative to NoteOff
-        self.assertEqual(
-            mockedportout.write.mock_calls[nextcall], call(b"\x92\x60\x00", 3)
-        )
+        self.assertEqual(mockedportout.write.mock_calls[nextcall], call(b"\x92\x60\x00", 3))
         nextcall += 1
         midi.send(NoteOff(0x64, 0x01))
-        self.assertEqual(
-            mockedportout.write.mock_calls[nextcall], call(b"\x82\x64\x01", 3)
-        )
+        self.assertEqual(mockedportout.write.mock_calls[nextcall], call(b"\x82\x64\x01", 3))
         nextcall += 1
         midi.send(NoteOff(0x67, 0x02))
-        self.assertEqual(
-            mockedportout.write.mock_calls[nextcall], call(b"\x82\x67\x02", 3)
-        )
+        self.assertEqual(mockedportout.write.mock_calls[nextcall], call(b"\x82\x67\x02", 3))
         nextcall += 1
 
         # Setting channel to non default
         midi.send(NoteOn(0x6C, 0x7F), channel=9)
-        self.assertEqual(
-            mockedportout.write.mock_calls[nextcall], call(b"\x99\x6c\x7f", 3)
-        )
+        self.assertEqual(mockedportout.write.mock_calls[nextcall], call(b"\x99\x6c\x7f", 3))
         nextcall += 1
 
         midi.send(NoteOff(0x6C, 0x7F), channel=9)
-        self.assertEqual(
-            mockedportout.write.mock_calls[nextcall], call(b"\x89\x6c\x7f", 3)
-        )
+        self.assertEqual(mockedportout.write.mock_calls[nextcall], call(b"\x89\x6c\x7f", 3))
         nextcall += 1
 
     def test_send_badnotes(self):
@@ -415,9 +386,7 @@ class Test_MIDI_send(unittest.TestCase):
         # Test sending some NoteOn and NoteOff to various channels
         nextcall = 0
         midi.send(NoteOn(60, 0x7F))
-        self.assertEqual(
-            mockedportout.write.mock_calls[nextcall], call(b"\x92\x3c\x7f", 3)
-        )
+        self.assertEqual(mockedportout.write.mock_calls[nextcall], call(b"\x92\x3c\x7f", 3))
         nextcall += 1
         with self.assertRaises(ValueError):
             midi.send(NoteOn(64, 0x80))  # Velocity > 127 - illegal value
@@ -427,9 +396,7 @@ class Test_MIDI_send(unittest.TestCase):
 
         # test after exceptions to ensure sending is still ok
         midi.send(NoteOn(72, 0x7F))
-        self.assertEqual(
-            mockedportout.write.mock_calls[nextcall], call(b"\x92\x48\x7f", 3)
-        )
+        self.assertEqual(mockedportout.write.mock_calls[nextcall], call(b"\x92\x48\x7f", 3))
         nextcall += 1
 
     def test_send_basic_sequences(self):
@@ -460,7 +427,7 @@ class Test_MIDI_send(unittest.TestCase):
         )
         nextcall += 1
 
-    def test_termination_with_random_data(self):  # pylint: disable=invalid-name
+    def test_termination_with_random_data(self):
         """Test with a random stream of bytes to ensure that the parsing code
         termates and returns, i.e. does not go into any infinite loops.
         """
@@ -470,7 +437,7 @@ class Test_MIDI_send(unittest.TestCase):
         midi = MIDI_mocked_receive(channel, raw_data, [len(raw_data)])
 
         noinfiniteloops = False
-        for unused in range(len(raw_data)):  # pylint: disable=unused-variable
+        for unused in range(len(raw_data)):
             midi.receive()  # not interested in returned tuple
 
         noinfiniteloops = True  # interested in getting to here

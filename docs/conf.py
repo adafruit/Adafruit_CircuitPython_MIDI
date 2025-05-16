@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # SPDX-FileCopyrightText: 2021 ladyada for Adafruit Industries
 #
 # SPDX-License-Identifier: MIT
@@ -48,9 +46,7 @@ project = "Adafruit MIDI Library"
 creation_year = "2019"
 current_year = str(datetime.datetime.now().year)
 year_duration = (
-    current_year
-    if current_year == creation_year
-    else creation_year + " - " + current_year
+    current_year if current_year == creation_year else creation_year + " - " + current_year
 )
 copyright = year_duration + " Ladyada & Kevin J. Walters"
 author = "Ladyada & Kevin J. Walters"
