@@ -6,8 +6,6 @@
 import usb_midi
 
 import adafruit_midi
-
-# pylint: disable=unused-import
 from adafruit_midi.channel_pressure import ChannelPressure
 from adafruit_midi.control_change import ControlChange
 from adafruit_midi.midi_message import MIDIUnknownEvent
@@ -57,11 +55,7 @@ while True:
                 if 0 <= new_note <= 127:
                     midi.send(NoteOn(new_note, msg_in.velocity))
 
-        elif (
-            isinstance(msg_in, NoteOff)
-            or isinstance(msg_in, NoteOn)
-            and msg_in.velocity == 0
-        ):
+        elif isinstance(msg_in, NoteOff) or isinstance(msg_in, NoteOn) and msg_in.velocity == 0:
             for offset in major_chord:
                 new_note = msg_in.note + offset
                 if 0 <= new_note <= 127:

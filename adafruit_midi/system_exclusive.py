@@ -44,17 +44,12 @@ class SystemExclusive(MIDIMessage):
         super().__init__()
 
     def __bytes__(self):
-        return (
-            bytes([self._STATUS])
-            + self.manufacturer_id
-            + self.data
-            + bytes([self.ENDSTATUS])
-        )
+        return bytes([self._STATUS]) + self.manufacturer_id + self.data + bytes([self.ENDSTATUS])
 
     @classmethod
     def from_bytes(cls, msg_bytes):
         # -1 on second arg is to avoid the ENDSTATUS which is passed
-        if msg_bytes[1] != 0:  # pylint: disable=no-else-return
+        if msg_bytes[1] != 0:
             return cls(msg_bytes[1:2], msg_bytes[2:-1])
         else:
             return cls(msg_bytes[1:4], msg_bytes[4:-1])

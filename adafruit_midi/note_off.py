@@ -22,7 +22,7 @@ __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_MIDI.git"
 
 
-class NoteOff(MIDIMessage):  # pylint: disable=duplicate-code
+class NoteOff(MIDIMessage):
     """Note Off Change MIDI message.
 
     :param note: The note (key) number either as an ``int`` (0-127) or a

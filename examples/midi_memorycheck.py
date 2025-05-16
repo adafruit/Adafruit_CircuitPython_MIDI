@@ -3,7 +3,6 @@
 
 # Check memory usage
 
-# pylint: disable=multiple-statements,unused-import,wrong-import-position,no-member
 
 # The disable for no-member should not really be required
 # probably a difference between Python 3 module and micropython

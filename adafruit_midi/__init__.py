@@ -25,8 +25,9 @@ Implementation Notes
   https://github.com/adafruit/circuitpython/releases
 
 """
+
 try:
-    from typing import Union, Tuple, Any, List, Optional, Dict, BinaryIO
+    from typing import Any, BinaryIO, Dict, List, Optional, Tuple, Union
 except ImportError:
     pass
 
@@ -64,7 +65,7 @@ class MIDI:
         in_channel: Optional[Union[int, Tuple[int, ...]]] = None,
         out_channel: int = 0,
         in_buf_size: int = 30,
-        debug: bool = False
+        debug: bool = False,
     ):
         if midi_in is None and midi_out is None:
             raise ValueError("No midi_in or midi_out provided")
@@ -132,9 +133,7 @@ class MIDI:
                 self._in_buf.extend(bytes_in)
                 del bytes_in
 
-        (msg, endplusone, skipped) = MIDIMessage.from_message_bytes(
-            self._in_buf, self._in_channel
-        )
+        (msg, endplusone, skipped) = MIDIMessage.from_message_bytes(self._in_buf, self._in_channel)
         if endplusone != 0:
             # This is not particularly efficient as it's copying most of bytearray
             # and deleting old one
@@ -158,14 +157,12 @@ class MIDI:
         if isinstance(msg, MIDIMessage):
             msg.channel = channel
             # bytes(object) does not work in uPy
-            data = msg.__bytes__()  # pylint: disable=unnecessary-dunder-call
+            data = msg.__bytes__()
         else:
             data = bytearray()
             for each_msg in msg:
                 each_msg.channel = channel
-                data.extend(
-                    each_msg.__bytes__()  # pylint: disable=unnecessary-dunder-call
-                )
+                data.extend(each_msg.__bytes__())
 
         self._send(data, len(data))
 
