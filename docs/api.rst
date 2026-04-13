@@ -46,6 +46,9 @@ API Reference
 .. automodule:: adafruit_midi.program_change
       :members:
 
+.. automodule:: adafruit_midi.midi_reset
+      :members:
+
 .. automodule:: adafruit_midi.start
       :members:
 
