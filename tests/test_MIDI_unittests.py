@@ -289,6 +289,16 @@ class Test_MIDI(unittest.TestCase):
         self.assertEqual(message.data, bytes([100, 150, 200]))
         self.assertIsInstance(message.data, bytes)
 
+    def test_bad_sysex_manufacturer_does_not_consume_the_next_message(self):
+        wire = b"\xf0\x00\xf7" + bytes(NoteOn(60, 100, channel=0))
+        midi = MIDI_mocked_receive(0, wire, [len(wire)])
+        self.assertIsInstance(midi.receive(), adafruit_midi.midi_message.MIDIBadEvent)
+        msg = midi.receive()
+        self.assertIsInstance(msg, NoteOn)
+        self.assertEqual(msg.note, 60)
+        self.assertEqual(msg.velocity, 100)
+        self.assertIsNone(midi.receive())
+
     def test_larger_than_buffer_sysex(self):
         channel = 0
         monster_data_len = 500

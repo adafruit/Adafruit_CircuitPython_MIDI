@@ -48,6 +48,8 @@ class SystemExclusive(MIDIMessage):
 
     @classmethod
     def from_bytes(cls, msg_bytes):
+        if len(msg_bytes) < 3 or (msg_bytes[1] == 0 and len(msg_bytes) < 5):
+            raise ValueError("Incomplete SysEx manufacturer ID")
         # -1 on second arg is to avoid the ENDSTATUS which is passed
         if msg_bytes[1] != 0:
             return cls(msg_bytes[1:2], msg_bytes[2:-1])
