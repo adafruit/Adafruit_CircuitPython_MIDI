@@ -238,26 +238,6 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(object4.velocity, 127)
         self.assertIsNone(object4.channel)
 
-    def test_SystemExclusive_short_manufacturer_is_a_bad_event(self):
-        for wire in (b"\xf0\xf7", b"\xf0\x00\xf7", b"\xf0\x00\x01\xf7"):
-            with self.subTest(wire=wire):
-                msg, consumed, skipped = adafruit_midi.MIDIMessage.from_message_bytes(wire, None)
-                self.assertIsInstance(msg, adafruit_midi.midi_message.MIDIBadEvent)
-                self.assertEqual(msg.data, wire)
-                self.assertIn("manufacturer", msg.exception_text)
-                self.assertEqual(consumed, len(wire))
-                self.assertEqual(skipped, 0)
-
-    def test_SystemExclusive_empty_payload_keeps_complete_manufacturer(self):
-        for wire in (b"\xf0\x42\xf7", b"\xf0\x00\x01\x02\xf7"):
-            with self.subTest(wire=wire):
-                msg, consumed, skipped = adafruit_midi.MIDIMessage.from_message_bytes(wire, None)
-                self.assertIsInstance(msg, SystemExclusive)
-                self.assertEqual(bytes(msg), wire)
-                self.assertEqual(msg.data, b"")
-                self.assertEqual(consumed, len(wire))
-                self.assertEqual(skipped, 0)
-
     def test_SystemExclusive_NoteOn(self):
         data = bytes([0xF0, 0x42, 0x01, 0x02, 0x03, 0x04, 0xF7, 0x90 | 14, 0x30, 0x60])
         ichannel = 14
@@ -298,6 +278,26 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertIsNone(msg)
         self.assertEqual(msgendidxplusone, 7)
         self.assertEqual(skipped, 0, "If SystemExclusive class is imported then this must be 0")
+
+    def test_SystemExclusive_short_manufacturer_is_a_bad_event(self):
+        for wire in (b"\xf0\xf7", b"\xf0\x00\xf7", b"\xf0\x00\x01\xf7"):
+            with self.subTest(wire=wire):
+                msg, consumed, skipped = adafruit_midi.MIDIMessage.from_message_bytes(wire, None)
+                self.assertIsInstance(msg, adafruit_midi.midi_message.MIDIBadEvent)
+                self.assertEqual(msg.data, wire)
+                self.assertIn("manufacturer", msg.exception_text)
+                self.assertEqual(consumed, len(wire))
+                self.assertEqual(skipped, 0)
+
+    def test_SystemExclusive_empty_payload_keeps_complete_manufacturer(self):
+        for wire in (b"\xf0\x42\xf7", b"\xf0\x00\x01\x02\xf7"):
+            with self.subTest(wire=wire):
+                msg, consumed, skipped = adafruit_midi.MIDIMessage.from_message_bytes(wire, None)
+                self.assertIsInstance(msg, SystemExclusive)
+                self.assertEqual(bytes(msg), wire)
+                self.assertEqual(msg.data, b"")
+                self.assertEqual(consumed, len(wire))
+                self.assertEqual(skipped, 0)
 
     def test_Unknown_SinglebyteStatus(self):
         data = bytes([0xFD])
