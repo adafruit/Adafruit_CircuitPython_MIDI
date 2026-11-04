@@ -53,7 +53,7 @@ def MIDI_mocked_both_loopback(in_c, out_c):
     return midi
 
 
-def MIDI_mocked_receive(in_c, data, read_sizes):
+def MIDI_mocked_receive(in_c, data, read_sizes, in_buf_size=30):
     usb_data = bytearray(data)
     chunks = read_sizes
     chunk_idx = 0
@@ -76,7 +76,11 @@ def MIDI_mocked_receive(in_c, data, read_sizes):
     mockedportin.read = read
 
     midi = adafruit_midi.MIDI(
-        midi_out=None, midi_in=mockedportin, out_channel=in_c, in_channel=in_c
+        midi_out=None,
+        midi_in=mockedportin,
+        out_channel=in_c,
+        in_channel=in_c,
+        in_buf_size=in_buf_size,
     )
     return midi
 
@@ -288,6 +292,42 @@ class Test_MIDI(unittest.TestCase):
 
         self.assertEqual(message.data, bytes([100, 150, 200]))
         self.assertIsInstance(message.data, bytes)
+
+    def test_sysex_across_every_two_read_partition(self):
+        # A full message within an explicitly configured 100-byte buffer.
+        wire = bytes(SystemExclusive([0, 0x20, 0x33], list(range(87))))
+        self.assertEqual(len(wire), 92)
+        for split in range(1, len(wire)):
+            with self.subTest(split=split):
+                midi = MIDI_mocked_receive(0, wire, [split, len(wire) - split], in_buf_size=100)
+                self.assertIsNone(midi.receive())
+                msg = midi.receive()
+                self.assertIsInstance(msg, SystemExclusive)
+                self.assertEqual(bytes(msg), wire)
+                self.assertIsNone(midi.receive())
+
+    def test_sysex_one_byte_reads_and_empty_polls(self):
+        wire = bytes(SystemExclusive([0x42], [1, 2, 3, 4]))
+        port = Mock()
+        port.read.side_effect = (
+            [bytes([value]) for value in wire[:3]]
+            + [b"", b""]
+            + [bytes([value]) for value in wire[3:]]
+            + [b""]
+        )
+        midi = adafruit_midi.MIDI(midi_in=port)
+        for _ in range(len(wire) + 1):
+            self.assertIsNone(midi.receive())
+        self.assertEqual(bytes(midi.receive()), wire)
+        self.assertIsNone(midi.receive())
+
+    def test_sysex_exact_buffer_capacity(self):
+        wire = bytes(SystemExclusive([0x42], list(range(97))))
+        midi = MIDI_mocked_receive(0, wire, [32, len(wire) - 32], in_buf_size=100)
+        self.assertEqual(len(wire), midi._in_buf_size)
+        self.assertIsNone(midi.receive())
+        self.assertEqual(bytes(midi.receive()), wire)
+        self.assertIsNone(midi.receive())
 
     def test_larger_than_buffer_sysex(self):
         channel = 0

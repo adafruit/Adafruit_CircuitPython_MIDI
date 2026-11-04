@@ -238,6 +238,25 @@ class Test_MIDIMessage_from_message_byte_tests(unittest.TestCase):
         self.assertEqual(object4.velocity, 127)
         self.assertIsNone(object4.channel)
 
+    def test_SystemExclusive_incomplete_preserves_its_start(self):
+        data = bytes([0xF0, 0, 0x20, 0x33, 1, 2, 0xF7])
+        for split in range(1, len(data)):
+            with self.subTest(split=split):
+                msg, consumed, skipped = adafruit_midi.MIDIMessage.from_message_bytes(
+                    data[:split], None
+                )
+                self.assertIsNone(msg)
+                self.assertEqual(consumed, 0)
+                self.assertEqual(skipped, 0)
+
+    def test_SystemExclusive_partial_after_filtered_message_consumes_only_prefix(self):
+        prefix = bytes(NoteOn(60, 100, channel=1))
+        data = prefix + bytes([0xF0, 0x42, 1, 2])
+        msg, consumed, skipped = adafruit_midi.MIDIMessage.from_message_bytes(data, 0)
+        self.assertIsNone(msg)
+        self.assertEqual(consumed, len(prefix))
+        self.assertEqual(skipped, 0)
+
     def test_SystemExclusive_NoteOn(self):
         data = bytes([0xF0, 0x42, 0x01, 0x02, 0x03, 0x04, 0xF7, 0x90 | 14, 0x30, 0x60])
         ichannel = 14
