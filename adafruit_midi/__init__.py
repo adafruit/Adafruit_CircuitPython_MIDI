@@ -138,6 +138,10 @@ class MIDI:
             # This is not particularly efficient as it's copying most of bytearray
             # and deleting old one
             self._in_buf = self._in_buf[endplusone:]
+        elif len(self._in_buf) == self._in_buf_size:
+            # An incomplete message cannot fit. Keep the existing bounded
+            # discard behavior so oversized SysEx does not block later input.
+            self._in_buf = bytearray()
 
         self._skipped_bytes += skipped
 

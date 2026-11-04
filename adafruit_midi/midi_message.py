@@ -196,6 +196,8 @@ class MIDIMessage:
                     )
                     if not terminated_msg:
                         complete_msg = False
+                        if not bad_termination:
+                            msgendidxplusone = msgstartidx
                 else:  # fixed length message
                     msgendidxplusone = msgstartidx + msgclass.LENGTH
                 break
